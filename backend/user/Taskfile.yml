@@ -1,0 +1,7 @@
+version: '3'
+
+tasks:
+  server:
+    desc: Start API server
+    cmds:
+    - go run main.go
