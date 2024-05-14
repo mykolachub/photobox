@@ -1,0 +1,19 @@
+version: '3'
+
+tasks:
+  postgres:
+    desc: Starts Postgres
+    cmds:
+    - docker-compose up -d
+
+  postgres:down:
+    desc: Starts Postgres
+    cmds:
+    - docker-compose down
+
+  postgres:migrate:
+    desc: Run Postgres Migration
+    vars:
+      DB_CONN_STRING: postgres://photobox_username:photobox_password@localhost:5432/photobox_database?sslmode=disable
+    cmds:
+    - migrate -database {{.DB_CONN_STRING}} -path postgres/migrations up

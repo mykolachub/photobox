@@ -1,38 +1,40 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 package user;
 
 option go_package = "photobox-user/proto";
 
 service UserService {
-    rpc GetUser (GetUserRequest) returns (GetUserResponse);
+    rpc GetUser (GetUserRequest) returns (UserResponse);
     rpc GetAllUsers (GetAllUsersRequest) returns (GetAllUsersResponse);
     rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
-    rpc UpdateUser (UpdateUserRequest) returns (GetUserResponse);
+    rpc UpdateUser (UpdateUserRequest) returns (UserResponse);
     rpc GetMe (GetMeRequest) returns (UserResponse);
     rpc Login (LoginRequest) returns (LoginResponse);
     rpc Signup (SignupRequest) returns (SignupResponse);
 }
 
-message User {
+message UserResponse {
     string id = 1;
     string email = 2;
     string username = 3;
     string password = 4;
+    int64 storage_used = 5;
+    int64 max_storage = 6;
+    google.protobuf.Timestamp created_at = 7;
+    google.protobuf.Timestamp updated_at = 8;
 }
 
 message GetUserRequest {
     string user_id = 1;
 }
 
-message GetUserResponse {
-    User user = 1;
-}
-
 message GetAllUsersRequest {}
 
 message GetAllUsersResponse {
-    repeated User users = 1;
+    repeated UserResponse users = 1;
 }
 
 message DeleteUserRequest {
@@ -51,10 +53,6 @@ message UpdateUserRequest {
 }
 
 message GetMeRequest {}
-
-message UserResponse {
-    User user = 1;
-}
 
 message LoginRequest {
     string email = 1;

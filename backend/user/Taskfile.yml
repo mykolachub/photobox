@@ -7,9 +7,24 @@ tasks:
     - go run main.go
 
   db:
-    desc: Start database
+    desc: Starts database
+    dir: ../db
     cmds:
-    - docker-compose up -d
+    - task postgres
+
+  db:down:
+    desc: Shuts down database
+    dir: ../db
+    cmds:
+    - task postgres:down
+
+  postgres:migrate:
+    desc: Starts Database Migrations
+    dotenv:
+    - '.env'
+    dir: ../db
+    cmds:
+    - task postgres:migrate
 
   proto:
     dir: proto/

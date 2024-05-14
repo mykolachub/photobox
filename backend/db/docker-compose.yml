@@ -1,0 +1,19 @@
+version: '3.8'
+
+name: photobox
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: db-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: photobox_database
+      POSTGRES_USER: photobox_username
+      POSTGRES_PASSWORD: photobox_password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

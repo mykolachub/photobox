@@ -9,6 +9,7 @@ type Storages struct {
 type UserRepo interface {
 	CreateUser(data entity.User) (entity.User, error)
 	GetUser(id string) (entity.User, error)
+	GetUserByEmail(email string) (entity.User, error)
 	GetAllUsers() ([]entity.User, error)
 	UpdateUser(id string, data entity.User) (entity.User, error)
 	DeleteUser(id string) (entity.User, error)

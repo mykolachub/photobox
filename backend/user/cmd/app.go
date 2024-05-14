@@ -31,7 +31,9 @@ func Run(env *config.Env) {
 		UserRepo: postgres.InitUserRepo(db),
 	}
 
-	userSvc := svcs.NewUserService(storages.UserRepo)
+	userSvc := svcs.NewUserService(storages.UserRepo, svcs.UserServiceConfig{
+		JwtSecret: env.JWTSecret,
+	})
 	services := controllers.Services{
 		UserService: userSvc,
 	}
