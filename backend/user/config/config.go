@@ -8,6 +8,7 @@ import (
 
 type Env struct {
 	HttpPort           string `envconfig:"HTTP_PORT"`
+	GrpcPort           string `envconfig:"GRPC_PORT"`
 	JWTSecret          string `envconfig:"JWT_SECRET"`
 	PostgresDBUser     string `envconfig:"POSTGRES_DBUSER"`
 	PostgresDBPassword string `envconfig:"POSTGRES_DBPASSWORD"`
