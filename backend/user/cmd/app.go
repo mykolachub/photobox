@@ -38,15 +38,21 @@ func Run(env *config.Env) {
 		UserService: userSvc,
 	}
 
+	configs := controllers.Configs{
+		UserHandlerConfig: controllers.UserHandlerConfig{
+			JwtSecret: env.JWTSecret,
+		},
+	}
+
 	// gRPC Server
 	go grpcServer(env.GrpcPort, *userSvc)
 
 	// HTTP Server
-	httpServer(env.HttpPort, services)
+	httpServer(env.HttpPort, services, configs)
 }
 
-func httpServer(port string, services controllers.Services) {
-	router := controllers.InitRouter(gin.Default(), services)
+func httpServer(port string, services controllers.Services, configs controllers.Configs) {
+	router := controllers.InitRouter(gin.Default(), services, configs)
 	addr := fmt.Sprintf(":%v", port)
 	handleErr(router.Run(addr), ErrTypeGinRouterRun)
 }

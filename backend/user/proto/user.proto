@@ -50,6 +50,7 @@ message UpdateUserRequest {
     string user_id = 1;
     string email = 2;
     string username = 3;
+    string password = 4;
 }
 
 message GetMeRequest {}

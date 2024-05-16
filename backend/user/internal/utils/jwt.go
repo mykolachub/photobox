@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"photobox-user/config"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -9,9 +10,9 @@ import (
 
 func GenerateJWTToken(id, email, secret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    id,
-		"email": email,
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		config.JWTClainsUserId:     id,
+		config.JWTClainsUserEmail:  email,
+		config.JWTClainsExpiration: time.Now().Add(time.Hour * 24).Unix(),
 	})
 
 	return token.SignedString([]byte(secret))

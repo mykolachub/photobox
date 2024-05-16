@@ -7,6 +7,8 @@ import (
 	"photobox-user/internal/models/entity"
 	"photobox-user/internal/utils"
 	"photobox-user/proto"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type UserService struct {
@@ -42,7 +44,7 @@ func (s *UserService) Signup(ctx context.Context, in *proto.SignupRequest) (*pro
 		Password: hash,
 	})
 	if err != nil {
-		return &proto.SignupResponse{}, fmt.Errorf("failed to sigup: %s", err)
+		return &proto.SignupResponse{}, fmt.Errorf("failed to signup: %s", err)
 	}
 
 	res := proto.SignupResponse{Success: true}
@@ -75,7 +77,13 @@ func (s *UserService) Login(ctx context.Context, in *proto.LoginRequest) (*proto
 }
 
 func (s *UserService) GetUser(ctx context.Context, in *proto.GetUserRequest) (*proto.UserResponse, error) {
-	return &proto.UserResponse{}, nil
+	user, err := s.UserRepo.GetUser(in.UserId)
+	if err != nil {
+		return &proto.UserResponse{}, errors.New("no such user")
+	}
+
+	res := makeUserResponse(user)
+	return &res, nil
 }
 
 func (s *UserService) GetMe(ctx context.Context, in *proto.GetMeRequest) (*proto.UserResponse, error) {
@@ -83,13 +91,62 @@ func (s *UserService) GetMe(ctx context.Context, in *proto.GetMeRequest) (*proto
 }
 
 func (s *UserService) GetAllUsers(ctx context.Context, in *proto.GetAllUsersRequest) (*proto.GetAllUsersResponse, error) {
-	return &proto.GetAllUsersResponse{}, nil
+	users, err := s.UserRepo.GetAllUsers()
+	if err != nil {
+		return &proto.GetAllUsersResponse{}, errors.New("failed to get users")
+	}
+
+	res := []*proto.UserResponse{}
+	for _, v := range users {
+		res_user := makeUserResponse(v)
+		res = append(res, &res_user)
+	}
+
+	return &proto.GetAllUsersResponse{Users: res}, nil
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, in *proto.UpdateUserRequest) (*proto.UserResponse, error) {
-	return &proto.UserResponse{}, nil
+	updateData := entity.User{
+		Email:    in.Email,
+		Password: in.Password,
+		Username: in.Username,
+	}
+	if len(in.Password) != 0 {
+		hashedPassword, err := utils.HashPassword(in.Password)
+		if err != nil {
+			return &proto.UserResponse{}, errors.New("failed to set new password")
+		}
+		updateData.Password = hashedPassword
+	}
+
+	user, err := s.UserRepo.UpdateUser(in.UserId, updateData)
+	if err != nil {
+		return &proto.UserResponse{}, fmt.Errorf("failed to update user %s", err.Error())
+	}
+
+	res := makeUserResponse(user)
+	return &res, nil
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, in *proto.DeleteUserRequest) (*proto.DeleteUserResponse, error) {
-	return &proto.DeleteUserResponse{}, nil
+	user, err := s.UserRepo.DeleteUser(in.UserId)
+	if err != nil {
+		return &proto.DeleteUserResponse{}, errors.New("failed to delete user")
+	}
+
+	res := proto.DeleteUserResponse{UserId: user.ID, Success: true}
+	return &res, nil
+}
+
+func makeUserResponse(user entity.User) proto.UserResponse {
+	return proto.UserResponse{
+		Id:          user.ID,
+		Email:       user.Email,
+		Password:    user.Password,
+		Username:    user.Username,
+		StorageUsed: user.StorageUsed,
+		MaxStorage:  user.MaxStorage,
+		CreatedAt:   timestamppb.New(user.CreatedAt),
+		UpdatedAt:   timestamppb.New(user.UpdatedAt),
+	}
 }
