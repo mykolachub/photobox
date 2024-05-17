@@ -5,12 +5,10 @@ import (
 	"log"
 	"net"
 	"photobox-user/config"
-	"photobox-user/internal/controllers"
-	svcs "photobox-user/internal/services"
+	"photobox-user/internal/services"
 	"photobox-user/internal/storage/postgres"
 	"photobox-user/proto"
 
-	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -27,37 +25,19 @@ func Run(env *config.Env) {
 	})
 	handleErr(err, ErrTypePostgresInitDB)
 
-	storages := svcs.Storages{
+	storages := services.Storages{
 		UserRepo: postgres.InitUserRepo(db),
 	}
 
-	userSvc := svcs.NewUserService(storages.UserRepo, svcs.UserServiceConfig{
+	userService := services.NewUserService(storages.UserRepo, services.UserServiceConfig{
 		JwtSecret: env.JWTSecret,
 	})
-	services := controllers.Services{
-		UserService: userSvc,
-	}
-
-	configs := controllers.Configs{
-		UserHandlerConfig: controllers.UserHandlerConfig{
-			JwtSecret: env.JWTSecret,
-		},
-	}
 
 	// gRPC Server
-	go grpcServer(env.GrpcPort, *userSvc)
-
-	// HTTP Server
-	httpServer(env.HttpPort, services, configs)
+	grpcServer(env.GrpcPort, *userService)
 }
 
-func httpServer(port string, services controllers.Services, configs controllers.Configs) {
-	router := controllers.InitRouter(gin.Default(), services, configs)
-	addr := fmt.Sprintf(":%v", port)
-	handleErr(router.Run(addr), ErrTypeGinRouterRun)
-}
-
-func grpcServer(port string, userService svcs.UserService) {
+func grpcServer(port string, userService services.UserService) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%v", port))
 	handleErr(err, ErrTypeGrpcTcpListen)
 
@@ -65,7 +45,7 @@ func grpcServer(port string, userService svcs.UserService) {
 	proto.RegisterUserServiceServer(s, &userService)
 	reflection.Register(s)
 
-	log.Printf("gRPC server listening at %v\n", lis.Addr())
+	log.Printf("gRPC User server listening at %v\n", lis.Addr())
 	handleErr(s.Serve(lis), ErrTypeGrpcServe)
 }
 

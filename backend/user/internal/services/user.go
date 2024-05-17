@@ -53,33 +53,18 @@ func (s *UserService) CreateUser(ctx context.Context, in *proto.CreateUserReques
 	return &res, nil
 }
 
-// func (s *UserService) Login(ctx context.Context, in *proto.LoginRequest) (*proto.LoginResponse, error) {
-// 	// get user
-// 	user, err := s.UserRepo.GetUserByEmail(in.Email)
-// 	if err != nil {
-// 		return &proto.LoginResponse{}, errors.New("invalid credentials")
-// 	}
-// 	fmt.Printf("user: %+v\n", user)
-
-// 	// compare password and hash
-// 	match, err := utils.ComparePasswordAndHash(in.Password, user.Password)
-// 	if err != nil || !match {
-// 		return &proto.LoginResponse{}, errors.New("invalid credentials")
-// 	}
-// 	fmt.Printf("match: %v\n", match)
-
-// 	// generate token
-// 	token, err := utils.GenerateJWTToken(user.ID, user.Email, s.cfg.JwtSecret)
-// 	if err != nil {
-// 		return &proto.LoginResponse{}, errors.New("failed to generate token")
-// 	}
-
-// 	res := proto.LoginResponse{Token: token}
-// 	return &res, nil
-// }
-
 func (s *UserService) GetUser(ctx context.Context, in *proto.GetUserRequest) (*proto.UserResponse, error) {
 	user, err := s.UserRepo.GetUser(in.Id)
+	if err != nil {
+		return &proto.UserResponse{}, errors.New("no such user")
+	}
+
+	res := makeUserResponse(user)
+	return &res, nil
+}
+
+func (s *UserService) GetUserByEmail(ctx context.Context, in *proto.GetUserByEmailRequest) (*proto.UserResponse, error) {
+	user, err := s.UserRepo.GetUserByEmail(in.Email)
 	if err != nil {
 		return &proto.UserResponse{}, errors.New("no such user")
 	}

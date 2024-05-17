@@ -14,6 +14,7 @@ tasks:
   postgres:migrate:
     desc: Run Postgres Migration
     vars:
+      # PRODUCTION! DB_CONN_STRING: postgres://postgres:postgres@photobox-database-instance-1.creoic0o86ry.eu-central-1.rds.amazonaws.com:5432/photobox?sslmode=disable
       DB_CONN_STRING: postgres://photobox_username:photobox_password@localhost:5432/photobox_database?sslmode=disable
     cmds:
     - migrate -database {{.DB_CONN_STRING}} -path postgres/migrations up

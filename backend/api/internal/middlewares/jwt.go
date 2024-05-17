@@ -2,8 +2,8 @@ package middlewares
 
 import (
 	"net/http"
-	"photobox-user/config"
-	"photobox-user/internal/utils"
+	"photobox-api/config"
+	"photobox-api/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

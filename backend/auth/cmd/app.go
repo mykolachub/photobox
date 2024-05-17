@@ -5,11 +5,9 @@ import (
 	"log"
 	"net"
 	"photobox-auth/config"
-	"photobox-auth/internal/controllers"
 	"photobox-auth/internal/services"
 	"photobox-auth/proto"
 
-	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/grpc"
@@ -20,7 +18,7 @@ import (
 func Run(env *config.Env) {
 	// Google Oauth Configuration
 	googleOauthConfig := &oauth2.Config{
-		RedirectURL:  "http://localhost:8081/api/auth/login/google", // TODO: set callback to frontend
+		RedirectURL:  env.GoogleRedirectURL, // TODO: set callback to frontend
 		ClientID:     env.GoogleClientId,
 		ClientSecret: env.GoogleClientSecret,
 		Scopes:       config.GoogleOauthScopes,
@@ -32,20 +30,7 @@ func Run(env *config.Env) {
 
 	authSvc := services.NewAuthService(googleOauthConfig, services.AuthServiceConfig{JWTSecret: env.JWTSecret}, userClient)
 
-	services := controllers.Services{
-		AuthService: authSvc,
-	}
-
-	configs := controllers.Configs{}
-
-	go grpcServer(env.GrpcPort, *authSvc)
-
-	httpServer(env.HttpPort, services, configs)
-}
-
-func httpServer(port string, services controllers.Services, configs controllers.Configs) {
-	router := controllers.InitRouter(gin.Default(), services, configs)
-	router.Run(fmt.Sprintf(":%v", port))
+	grpcServer(env.GrpcPort, *authSvc)
 }
 
 func grpcServer(port string, authService services.AuthService) {
@@ -56,7 +41,7 @@ func grpcServer(port string, authService services.AuthService) {
 	proto.RegisterAuthServiceServer(s, &authService)
 	reflection.Register(s)
 
-	log.Printf("gRPC server listening at %v\n", lis.Addr())
+	log.Printf("gRPC Auth server listening at %v\n", lis.Addr())
 	handleErr(s.Serve(lis), ErrTypeGrpcServe)
 }
 

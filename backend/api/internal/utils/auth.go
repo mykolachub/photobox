@@ -2,7 +2,7 @@ package utils
 
 import (
 	"errors"
-	"photobox-user/config"
+	"photobox-api/config"
 	"strings"
 )
 
