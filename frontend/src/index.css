@@ -1,0 +1,22 @@
+*,
+*::after,
+*::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("../public/assets/fonts/GeistVF.woff2") format("woff2 supports variations"),
+       url("../public/assets/fonts/GeistVF.woff2") format("woff2-variations");
+  font-weight: 100 1000;
+}
+
+
+body {
+  height: 100%;
+  font-family: "Geist", sans-serif;
+  color: #333;
+}
+
