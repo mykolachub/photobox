@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"photobox-api/config"
 	"photobox-api/internal/middlewares"
 	"photobox-api/proto"
 
@@ -29,6 +30,7 @@ func InitUserHandler(r *gin.Engine, userClient proto.UserServiceClient, cfg User
 	{
 		users.POST("", handler.createUser)
 		users.GET("", handler.getAllUsers)
+		users.GET("/me", handler.getMe)
 		users.GET("/:user_id", handler.getUser)
 		users.PATCH("/:user_id", handler.updateUser)
 		users.DELETE("/:user_id", handler.deleteUser)
@@ -54,6 +56,18 @@ func (h UserHandler) createUser(c *gin.Context) {
 
 func (h UserHandler) getAllUsers(c *gin.Context) {
 	res, err := h.userClient.GetAllUsers(c, &proto.GetAllUsersRequest{})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": res})
+}
+
+func (h UserHandler) getMe(c *gin.Context) {
+	userId := c.Keys[config.PayloadUserId].(string)
+
+	res, err := h.userClient.GetUser(c, &proto.GetUserRequest{Id: userId})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
