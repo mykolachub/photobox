@@ -21,13 +21,11 @@ type UserHandlerConfig struct {
 }
 
 type UserService interface {
-	DeleteUser(context.Context, *proto.DeleteUserRequest) (*proto.DeleteUserResponse, error)
-	GetAllUsers(context.Context, *proto.GetAllUsersRequest) (*proto.GetAllUsersResponse, error)
-	GetMe(context.Context, *proto.GetMeRequest) (*proto.UserResponse, error)
+	CreateUser(context.Context, *proto.CreateUserRequest) (*proto.UserResponse, error)
 	GetUser(context.Context, *proto.GetUserRequest) (*proto.UserResponse, error)
-	Login(context.Context, *proto.LoginRequest) (*proto.LoginResponse, error)
-	Signup(context.Context, *proto.SignupRequest) (*proto.SignupResponse, error)
+	GetAllUsers(context.Context, *proto.GetAllUsersRequest) (*proto.GetAllUsersResponse, error)
 	UpdateUser(context.Context, *proto.UpdateUserRequest) (*proto.UserResponse, error)
+	DeleteUser(context.Context, *proto.DeleteUserRequest) (*proto.DeleteUserResponse, error)
 }
 
 func InitUserHandler(r *gin.Engine, usrSvc UserService, cfg UserHandlerConfig) {
@@ -37,9 +35,7 @@ func InitUserHandler(r *gin.Engine, usrSvc UserService, cfg UserHandlerConfig) {
 		JwtSecret: handler.cfg.JwtSecret,
 	})
 
-	r.POST("/api/login", handler.login)
-	r.POST("/api/signup", handler.signup)
-
+	r.POST("/api/users", handler.createUser)
 	users := r.Group("/api/users", middle.Protect())
 	{
 		users.GET("", handler.getAllUsers)
@@ -50,34 +46,17 @@ func InitUserHandler(r *gin.Engine, usrSvc UserService, cfg UserHandlerConfig) {
 	}
 }
 
-func (h UserHandler) login(c *gin.Context) {
-	var req proto.LoginRequest
+func (h UserHandler) createUser(c *gin.Context) {
+	var req proto.CreateUserRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("login invalid data: %s", err)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("create invalid data: %s", err)})
 		return
 	}
 
-	res, err := h.usrSvc.Login(c, &req)
+	res, err := h.usrSvc.CreateUser(c, &req)
 	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": fmt.Sprintf("login: %s", err.Error())})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"data": res})
-}
-
-func (h UserHandler) signup(c *gin.Context) {
-	var req proto.SignupRequest
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("signup invalid data: %s", err)})
-		return
-	}
-
-	res, err := h.usrSvc.Signup(c, &req)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": fmt.Sprintf("signup: %s", err.Error())})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": fmt.Sprintf("create: %s", err.Error())})
 		return
 	}
 
@@ -87,7 +66,7 @@ func (h UserHandler) signup(c *gin.Context) {
 func (h UserHandler) me(c *gin.Context) {
 	userId := c.Keys[config.PayloadUserId].(string)
 
-	res, err := h.usrSvc.GetUser(c, &proto.GetUserRequest{UserId: userId})
+	res, err := h.usrSvc.GetUser(c, &proto.GetUserRequest{Id: userId})
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
@@ -103,7 +82,7 @@ func (h UserHandler) getUser(c *gin.Context) {
 		return
 	}
 
-	res, err := h.usrSvc.GetUser(c, &proto.GetUserRequest{UserId: user_id})
+	res, err := h.usrSvc.GetUser(c, &proto.GetUserRequest{Id: user_id})
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
@@ -135,7 +114,7 @@ func (h UserHandler) updateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("update invalid data: %s", err)})
 		return
 	}
-	req.UserId = user_id
+	req.Id = user_id
 
 	res, err := h.usrSvc.UpdateUser(c, &req)
 	if err != nil {
@@ -154,7 +133,7 @@ func (h UserHandler) deleteUser(c *gin.Context) {
 		return
 	}
 
-	res, err := h.usrSvc.DeleteUser(c, &proto.DeleteUserRequest{UserId: user_id})
+	res, err := h.usrSvc.DeleteUser(c, &proto.DeleteUserRequest{Id: user_id})
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return

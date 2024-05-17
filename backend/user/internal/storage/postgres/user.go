@@ -25,20 +25,22 @@ func (r *UserRepo) CreateUser(data entity.User) (entity.User, error) {
 
 	query := `
 	INSERT INTO
-		users (username, email, password, created_at)
+		users (google_id, email, password, username, picture, created_at)
 	VALUES
-		($1, $2, $3, $4) 
+		($1, $2, $3, $4, $5, $6) 
 	RETURNING
-		user_id, email, password,
-		username, storage_used, max_storage,
-		created_at, updated_at`
+		id, google_id, email, password,
+		username, picture, storage_used,
+		max_storage, created_at, updated_at`
 
-	rows := r.db.QueryRow(query, data.Username, data.Email, data.Password, now)
+	rows := r.db.QueryRow(query, data.GoogleID, data.Email, data.Password, data.Username, data.Picture, now)
 	err := rows.Scan(
 		&user.ID,
+		&user.GoogleID,
 		&user.Email,
 		&user.Password,
-		&user.Password,
+		&user.Username,
+		&user.Picture,
 		&user.StorageUsed,
 		&user.MaxStorage,
 		&user.CreatedAt,
@@ -56,19 +58,21 @@ func (r *UserRepo) GetUser(id string) (entity.User, error) {
 
 	query := `
 	SELECT
-		user_id, email, password,	
-		username, storage_used, max_storage,	
-		created_at, updated_at	
+		id, google_id, email, password,
+		username, picture, storage_used,
+		max_storage, created_at, updated_at	
 	FROM
 		users	
 	WHERE
-		user_id = $1`
+		id = $1`
 
 	err := r.db.QueryRow(query, id).Scan(
 		&user.ID,
+		&user.GoogleID,
 		&user.Email,
 		&user.Password,
 		&user.Username,
+		&user.Picture,
 		&user.StorageUsed,
 		&user.MaxStorage,
 		&user.CreatedAt,
@@ -86,9 +90,9 @@ func (r *UserRepo) GetUserByEmail(email string) (entity.User, error) {
 
 	query := `
 	SELECT
-		user_id, email, password,	
-		username, storage_used, max_storage,	
-		created_at, updated_at	
+		id, google_id, email, password,
+		username, picture, storage_used,
+		max_storage, created_at, updated_at	
 	FROM
 		users	
 	WHERE
@@ -96,9 +100,11 @@ func (r *UserRepo) GetUserByEmail(email string) (entity.User, error) {
 
 	err := r.db.QueryRow(query, email).Scan(
 		&user.ID,
+		&user.GoogleID,
 		&user.Email,
 		&user.Password,
 		&user.Username,
+		&user.Picture,
 		&user.StorageUsed,
 		&user.MaxStorage,
 		&user.CreatedAt,
@@ -116,9 +122,9 @@ func (r *UserRepo) GetAllUsers() ([]entity.User, error) {
 
 	query := `
 	SELECT
-		user_id, email, password,	
-		username, storage_used, max_storage,	
-		created_at, updated_at
+		id, google_id, email, password,
+		username, picture, storage_used,
+		max_storage, created_at, updated_at	
 	FROM
 		users`
 
@@ -130,9 +136,11 @@ func (r *UserRepo) GetAllUsers() ([]entity.User, error) {
 		user := entity.User{}
 		if err := rows.Scan(
 			&user.ID,
+			&user.GoogleID,
 			&user.Email,
 			&user.Password,
 			&user.Username,
+			&user.Picture,
 			&user.StorageUsed,
 			&user.MaxStorage,
 			&user.CreatedAt,
@@ -164,6 +172,10 @@ func (r *UserRepo) UpdateUser(id string, data entity.User) (entity.User, error) 
 		updates = append(updates, fmt.Sprintf("username = $%d", len(args)+1))
 		args = append(args, data.Username)
 	}
+	if data.Picture != "" {
+		updates = append(updates, fmt.Sprintf("picture = $%d", len(args)+1))
+		args = append(args, data.Picture)
+	}
 
 	if len(updates) == 0 {
 		return entity.User{}, errors.New("empty update body")
@@ -174,18 +186,20 @@ func (r *UserRepo) UpdateUser(id string, data entity.User) (entity.User, error) 
 		users
 	SET ` + strings.Join(updates, ", ") + ` 
 	WHERE
-		user_id = $1
+		id = $1
 	RETURNING
-		user_id, email, password,	
-		username, storage_used, max_storage,	
-		created_at, updated_at
+		id, google_id, email, password,
+		username, picture, storage_used,
+		max_storage, created_at, updated_at
 	`
 
 	err := r.db.QueryRow(query, args...).Scan(
 		&user.ID,
+		&user.GoogleID,
 		&user.Email,
 		&user.Password,
 		&user.Username,
+		&user.Picture,
 		&user.StorageUsed,
 		&user.MaxStorage,
 		&user.CreatedAt,
@@ -205,16 +219,20 @@ func (r *UserRepo) DeleteUser(id string) (entity.User, error) {
 	DELETE FROM
 		users
 	WHERE
-		user_id = $1
+		id = $1
 	RETURNING
-		*
+		id, google_id, email, password,
+		username, picture, storage_used,
+		max_storage, created_at, updated_at
 	`
 
 	err := r.db.QueryRow(query, id).Scan(
 		&user.ID,
+		&user.GoogleID,
 		&user.Email,
 		&user.Password,
 		&user.Username,
+		&user.Picture,
 		&user.StorageUsed,
 		&user.MaxStorage,
 		&user.CreatedAt,

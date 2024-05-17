@@ -7,9 +7,11 @@ import (
 
 type User struct {
 	ID          string
+	GoogleID    string
 	Email       string
-	Username    string
 	Password    string
+	Username    string
+	Picture     string
 	StorageUsed int64
 	MaxStorage  int64
 	CreatedAt   time.Time
@@ -19,9 +21,11 @@ type User struct {
 func (u *User) ToResponse() response.User {
 	return response.User{
 		ID:          u.ID,
+		GoogleID:    u.GoogleID,
 		Email:       u.Email,
-		Username:    u.Username,
 		Password:    u.Password,
+		Username:    u.Username,
+		Picture:     u.Picture,
 		StorageUsed: u.StorageUsed,
 		MaxStorage:  u.MaxStorage,
 		CreatedAt:   u.CreatedAt,
