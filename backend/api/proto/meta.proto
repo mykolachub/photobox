@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package meta;
+
+option go_package = "photobox-meta/proto";
+
+service MetaService {
+    rpc UploadMeta (UplodaMetaRequest) returns (MetaResponse);
+    rpc GetMetaById (GetMetaByIdRequest) returns (MetaResponse);
+    rpc GetMetaByUser (GetMetaByUserRequest) returns (GetMetaByUserResponse);
+    rpc GetAllMeta (GetAllMetaRequest) returns (GetAllMetaResponse);
+    rpc DeleteMetaById (DeleteMetaByIdRequest) returns (MetaResponse);
+    rpc DeleteMetaByUser (DeleteMetaByUserRequest) returns (DeleteMetaByUserResponse);
+    rpc UpdateMeta (UpdateMetaRequest) returns (MetaResponse);
+}
+
+message MetaResponse {
+    string id = 1;
+    string user_id = 2;
+    string file_location = 3;
+    string file_name = 4;
+    int64 file_size = 5;
+    string file_ext = 6;
+    google.protobuf.Timestamp file_last_modified = 7;
+    // TODO: add keywords
+    google.protobuf.Timestamp created_at = 8;
+}
+
+message UplodaMetaRequest {
+    string user_id = 1;
+    string filename = 2;
+    bytes file = 3;
+    optional google.protobuf.Timestamp file_last_modified = 4;
+}
+
+message GetMetaByIdRequest {
+    string id = 1;
+}
+
+message GetMetaByUserRequest {
+    string user_id = 1;
+}
+
+message GetMetaByUserResponse {
+    repeated MetaResponse metas = 1;
+}
+
+message GetAllMetaRequest {}
+
+message GetAllMetaResponse {
+    repeated MetaResponse metas = 1;
+}
+
+message DeleteMetaByIdRequest {
+    string id = 1;
+}
+
+message DeleteMetaByUserRequest {
+    string user_id = 1;
+}
+
+message DeleteMetaByUserResponse {
+    repeated MetaResponse deleted_metas = 1;
+}
+
+message UpdateMetaRequest {
+    string user_id = 1;
+    string file_name = 2;
+}

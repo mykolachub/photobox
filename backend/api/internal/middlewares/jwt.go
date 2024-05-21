@@ -21,6 +21,7 @@ func InitMiddleware(cfg MiddlewareConfig) Middleware {
 	return Middleware{cfg: cfg}
 }
 
+// TODO: Make different middles for auth, storage
 func (m Middleware) Protect() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader(config.AuthorizationHeader)

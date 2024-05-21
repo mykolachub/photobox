@@ -13,6 +13,8 @@ type Env struct {
 	GrpcAuthServiceHost string `envconfig:"GRPC_AUTH_SERVICE_HOST"`
 	GrpcUserServicePort string `envconfig:"GRPC_USER_SERVICE_PORT"`
 	GrpcUserServiceHost string `envconfig:"GRPC_USER_SERVICE_HOST"`
+	GrpcMetaServicePort string `envconfig:"GRPC_META_SERVICE_PORT"`
+	GrpcMetaServiceHost string `envconfig:"GRPC_META_SERVICE_HOST"`
 }
 
 func ConfigEnv() *Env {

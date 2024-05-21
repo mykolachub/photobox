@@ -13,20 +13,17 @@ import (
 type UserHandler struct {
 	userClient proto.UserServiceClient
 	cfg        UserHandlerConfig
+	middle     middlewares.Middleware
 }
 
 type UserHandlerConfig struct {
 	JwtSecret string
 }
 
-func InitUserHandler(r *gin.Engine, userClient proto.UserServiceClient, cfg UserHandlerConfig) {
-	handler := UserHandler{userClient: userClient, cfg: cfg}
+func InitUserHandler(r *gin.Engine, userClient proto.UserServiceClient, cfg UserHandlerConfig, middle middlewares.Middleware) {
+	handler := UserHandler{userClient: userClient, cfg: cfg, middle: middle}
 
-	middle := middlewares.InitMiddleware(middlewares.MiddlewareConfig{
-		JwtSecret: handler.cfg.JwtSecret,
-	})
-
-	users := r.Group("/api/users", middle.Protect())
+	users := r.Group("/api/users", handler.middle.Protect())
 	{
 		users.POST("", handler.createUser)
 		users.GET("", handler.getAllUsers)
