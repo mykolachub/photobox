@@ -1,0 +1,33 @@
+version: '3'
+
+tasks:
+  server:
+    desc: Start API server
+    cmds:
+    - go run main.go
+
+  db:
+    desc: Starts database
+    dir: ../db
+    cmds:
+    - task postgres
+
+  db:down:
+    desc: Shuts down database
+    dir: ../db
+    cmds:
+    - task postgres:down
+
+  postgres:migrate:
+    desc: Starts Database Migrations
+    dotenv:
+    - '.env'
+    dir: ../db
+    cmds:
+    - task postgres:migrate
+
+  proto:
+    dir: proto/
+    desc: Generates protobuf golang services
+    cmds:
+    - protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative *.proto
