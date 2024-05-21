@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"photobox-meta/internal/models/entity"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -16,7 +17,36 @@ func InitMetaRepo(db *sql.DB) *MetaRepo {
 }
 
 func (r *MetaRepo) CreateMeta(data entity.Meta) (entity.Meta, error) {
-	return entity.Meta{}, nil
+	meta := entity.Meta{}
+	now := time.Now().UTC()
+
+	query := `
+	INSERT INTO
+		metadata(user_id, file_location, file_name, file_size, file_ext, file_last_modified, created_at)
+	VALUES
+		($1, $2, $3, $4, $5, $6, $7)
+	RETURNING
+		id, user_id,
+		file_location, file_name,
+		file_size, file_ext, file_last_modified,
+		created_at`
+
+	rows := r.db.QueryRow(query, data.UserID, data.FileLocation, data.FileName, data.FileSize, data.FileExt, data.FileLastModified, now)
+	err := rows.Scan(
+		&meta.ID,
+		&meta.UserID,
+		&meta.FileLocation,
+		&meta.FileName,
+		&meta.FileSize,
+		&meta.FileExt,
+		&meta.FileLastModified,
+		&meta.CreatedAt,
+	)
+	if err != nil {
+		return entity.Meta{}, err
+	}
+
+	return meta, nil
 }
 
 func (r *MetaRepo) GetMeta(id string) (entity.Meta, error) {

@@ -7,6 +7,8 @@ import (
 	"photobox-meta/config"
 	"photobox-meta/internal/services"
 	"photobox-meta/internal/storage/postgres"
+	"photobox-meta/internal/storage/s3"
+	"photobox-meta/logger"
 	"photobox-meta/proto"
 
 	"google.golang.org/grpc"
@@ -14,6 +16,9 @@ import (
 )
 
 func Run(env *config.Env) {
+	// Logger
+	l := logger.NewZap("")
+
 	// Database
 	db, err := postgres.InitDBConnection(postgres.PostgresConfig{
 		DBUser:     env.PostgresDBUser,
@@ -25,11 +30,21 @@ func Run(env *config.Env) {
 	})
 	handleErr(err, ErrTypePostgresInitDB)
 
+	s3Client, err := s3.InitS3Connection(s3.S3BucketConfig{
+		Region:    env.S3Region,
+		Name:      env.S3BucketName,
+		AccessKey: env.S3AccessKey,
+		Secret:    env.S3SecretAccessKey,
+		Endpoint:  env.S3Endpoint,
+	})
+	handleErr(err, ErrTypeS3InitDB)
+
 	storages := services.Storages{
 		MetaRepo: postgres.InitMetaRepo(db),
+		FileRepo: s3.InitFileRepo(s3Client, s3.FileRepoConfig{BucketName: env.S3BucketName}),
 	}
 
-	metaService := services.NewMetaService(storages.MetaRepo, services.MetaServiceConfig{})
+	metaService := services.NewMetaService(storages.MetaRepo, storages.FileRepo, services.MetaServiceConfig{}, l)
 
 	// gRPC Server
 	grpcServer(env.GrpcPort, *metaService)
@@ -51,6 +66,7 @@ type AppErrType string
 
 var (
 	ErrTypePostgresInitDB AppErrType = "postgres init db"
+	ErrTypeS3InitDB       AppErrType = "s3 init db"
 	ErrTypeGinRouterRun   AppErrType = "gin router run"
 	ErrTypeGrpcTcpListen  AppErrType = "grpc tcp listen"
 	ErrTypeGrpcServe      AppErrType = "grpc serve"

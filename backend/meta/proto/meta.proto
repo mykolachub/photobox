@@ -21,23 +21,23 @@ message MetaResponse {
     string user_id = 2;
     string file_location = 3;
     string file_name = 4;
-    string file_size = 5;
-    string file_type = 6;
+    int64 file_size = 5;
+    string file_ext = 6;
+    google.protobuf.Timestamp file_last_modified = 7;
     // TODO: add keywords
-    google.protobuf.Timestamp created_at = 7;
-    google.protobuf.Timestamp updated_at = 8;
+    google.protobuf.Timestamp created_at = 8;
 }
 
 message UplodaMetaRequest {
     string user_id = 1;
-    string file_location = 2;
-    string file_name = 3;
-    string file_size = 4;
-    string file_type = 5;
-    google.protobuf.Timestamp file_created_at = 6;
+    string filename = 2;
+    bytes file = 3;
+    optional google.protobuf.Timestamp file_last_modified = 4;
 }
 
-message GetMetaByIdRequest {}
+message GetMetaByIdRequest {
+    string id = 1;
+}
 
 message GetMetaByUserRequest {
     string user_id = 1;
