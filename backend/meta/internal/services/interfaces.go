@@ -9,9 +9,10 @@ type Storages struct {
 
 type MetaRepo interface {
 	CreateMeta(data entity.Meta) (entity.Meta, error)
-	GetMeta(id string) (entity.Meta, error)
-	GetMetaByUser(user_id string) ([]entity.Meta, error)
+	GetMetaById(id string) (entity.Meta, error)
+	GetMetaByFileLocation(fileLocation string) (entity.Meta, error)
 	GetAllMeta() ([]entity.Meta, error)
+	GetAllMetaByUserId(user_id string) ([]entity.Meta, error)
 	UpdateMeta(id string, data entity.Meta) (entity.Meta, error)
 	DeleteMeta(id string) (entity.Meta, error)
 	DeleteMetaByUser(user_id string) ([]entity.Meta, error)

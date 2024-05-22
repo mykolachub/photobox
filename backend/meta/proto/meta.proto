@@ -14,6 +14,8 @@ service MetaService {
     rpc DeleteMetaById (DeleteMetaByIdRequest) returns (MetaResponse);
     rpc DeleteMetaByUser (DeleteMetaByUserRequest) returns (DeleteMetaByUserResponse);
     rpc UpdateMeta (UpdateMetaRequest) returns (MetaResponse);
+
+    rpc GetFileByKey (GetFileByKeyRequest) returns (FileResponse);
 }
 
 message MetaResponse {
@@ -68,4 +70,13 @@ message DeleteMetaByUserResponse {
 message UpdateMetaRequest {
     string user_id = 1;
     string file_name = 2;
+}
+
+message GetFileByKeyRequest {
+    string user_id = 1;
+    string key = 2;
+}
+
+message FileResponse {
+    bytes file = 1;
 }

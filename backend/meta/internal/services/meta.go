@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"photobox-meta/internal/models/entity"
 	"photobox-meta/internal/utils"
@@ -69,7 +70,18 @@ func (s *MetaService) GetMetaById(ctx context.Context, in *proto.GetMetaByIdRequ
 }
 
 func (s *MetaService) GetMetaByUser(ctx context.Context, in *proto.GetMetaByUserRequest) (*proto.GetMetaByUserResponse, error) {
-	return &proto.GetMetaByUserResponse{}, nil
+	metas, err := s.MetaRepo.GetAllMetaByUserId(in.UserId)
+	if err != nil {
+		return &proto.GetMetaByUserResponse{}, err
+	}
+
+	res := proto.GetMetaByUserResponse{}
+	for _, v := range metas {
+		meta := MakeMetaResponse(v)
+		res.Metas = append(res.Metas, &meta)
+	}
+
+	return &res, nil
 }
 
 func (s *MetaService) GetAllMeta(ctx context.Context, in *proto.GetAllMetaRequest) (*proto.GetAllMetaResponse, error) {
@@ -86,6 +98,26 @@ func (s *MetaService) DeleteMetaById(ctx context.Context, in *proto.DeleteMetaBy
 
 func (s *MetaService) DeleteMetaByUser(ctx context.Context, in *proto.DeleteMetaByUserRequest) (*proto.DeleteMetaByUserResponse, error) {
 	return &proto.DeleteMetaByUserResponse{}, nil
+}
+
+func (s *MetaService) GetFileByKey(ctx context.Context, in *proto.GetFileByKeyRequest) (*proto.FileResponse, error) {
+	// Check if user has this file
+	meta, err := s.MetaRepo.GetMetaByFileLocation(in.Key)
+	if err != nil {
+		return &proto.FileResponse{}, err
+	}
+
+	if meta.UserID != in.UserId {
+		return &proto.FileResponse{}, errors.New("file does not belong to user")
+	}
+
+	// Get file from S3
+	file, err := s.FileRepo.GetFile(in.Key)
+	if err != nil {
+		return &proto.FileResponse{}, err
+	}
+
+	return &proto.FileResponse{File: file}, nil
 }
 
 func MakeMetaResponse(meta entity.Meta) proto.MetaResponse {

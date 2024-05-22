@@ -49,12 +49,80 @@ func (r *MetaRepo) CreateMeta(data entity.Meta) (entity.Meta, error) {
 	return meta, nil
 }
 
-func (r *MetaRepo) GetMeta(id string) (entity.Meta, error) {
+func (r *MetaRepo) GetMetaById(id string) (entity.Meta, error) {
 	return entity.Meta{}, nil
 }
 
-func (r *MetaRepo) GetMetaByUser(user_id string) ([]entity.Meta, error) {
-	return []entity.Meta{}, nil
+func (r *MetaRepo) GetMetaByFileLocation(fileLocation string) (entity.Meta, error) {
+	meta := entity.Meta{}
+
+	query := `
+	SELECT
+		id, user_id,
+		file_location, file_name,
+		file_size, file_ext, file_last_modified,
+		created_at
+	FROM
+		metadata
+	WHERE
+		file_location = $1
+	`
+
+	err := r.db.QueryRow(query, fileLocation).Scan(
+		&meta.ID,
+		&meta.UserID,
+		&meta.FileLocation,
+		&meta.FileName,
+		&meta.FileSize,
+		&meta.FileExt,
+		&meta.FileLastModified,
+		&meta.CreatedAt,
+	)
+	if err != nil {
+		return entity.Meta{}, err
+	}
+
+	return meta, nil
+}
+
+func (r *MetaRepo) GetAllMetaByUserId(user_id string) ([]entity.Meta, error) {
+	metas := []entity.Meta{}
+
+	query := `
+	SELECT
+		id, user_id,
+		file_location, file_name,
+		file_size, file_ext, file_last_modified,
+		created_at
+	FROM
+		metadata
+	WHERE
+		user_id = $1
+	`
+
+	rows, err := r.db.Query(query, user_id)
+	if err != nil {
+		return []entity.Meta{}, err
+	}
+	for rows.Next() {
+		meta := entity.Meta{}
+		err := rows.Scan(
+			&meta.ID,
+			&meta.UserID,
+			&meta.FileLocation,
+			&meta.FileName,
+			&meta.FileSize,
+			&meta.FileExt,
+			&meta.FileLastModified,
+			&meta.CreatedAt,
+		)
+		if err != nil {
+			return []entity.Meta{}, err
+		}
+		metas = append(metas, meta)
+	}
+
+	return metas, nil
 }
 
 func (r *MetaRepo) GetAllMeta() ([]entity.Meta, error) {
