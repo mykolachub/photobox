@@ -29,6 +29,7 @@ type MetaServiceClient interface {
 	DeleteMetaById(ctx context.Context, in *DeleteMetaByIdRequest, opts ...grpc.CallOption) (*MetaResponse, error)
 	DeleteMetaByUser(ctx context.Context, in *DeleteMetaByUserRequest, opts ...grpc.CallOption) (*DeleteMetaByUserResponse, error)
 	UpdateMeta(ctx context.Context, in *UpdateMetaRequest, opts ...grpc.CallOption) (*MetaResponse, error)
+	GetFileByKey(ctx context.Context, in *GetFileByKeyRequest, opts ...grpc.CallOption) (*FileResponse, error)
 }
 
 type metaServiceClient struct {
@@ -102,6 +103,15 @@ func (c *metaServiceClient) UpdateMeta(ctx context.Context, in *UpdateMetaReques
 	return out, nil
 }
 
+func (c *metaServiceClient) GetFileByKey(ctx context.Context, in *GetFileByKeyRequest, opts ...grpc.CallOption) (*FileResponse, error) {
+	out := new(FileResponse)
+	err := c.cc.Invoke(ctx, "/meta.MetaService/GetFileByKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MetaServiceServer is the server API for MetaService service.
 // All implementations must embed UnimplementedMetaServiceServer
 // for forward compatibility
@@ -113,6 +123,7 @@ type MetaServiceServer interface {
 	DeleteMetaById(context.Context, *DeleteMetaByIdRequest) (*MetaResponse, error)
 	DeleteMetaByUser(context.Context, *DeleteMetaByUserRequest) (*DeleteMetaByUserResponse, error)
 	UpdateMeta(context.Context, *UpdateMetaRequest) (*MetaResponse, error)
+	GetFileByKey(context.Context, *GetFileByKeyRequest) (*FileResponse, error)
 	mustEmbedUnimplementedMetaServiceServer()
 }
 
@@ -140,6 +151,9 @@ func (UnimplementedMetaServiceServer) DeleteMetaByUser(context.Context, *DeleteM
 }
 func (UnimplementedMetaServiceServer) UpdateMeta(context.Context, *UpdateMetaRequest) (*MetaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateMeta not implemented")
+}
+func (UnimplementedMetaServiceServer) GetFileByKey(context.Context, *GetFileByKeyRequest) (*FileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFileByKey not implemented")
 }
 func (UnimplementedMetaServiceServer) mustEmbedUnimplementedMetaServiceServer() {}
 
@@ -280,6 +294,24 @@ func _MetaService_UpdateMeta_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MetaService_GetFileByKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFileByKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetaServiceServer).GetFileByKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/meta.MetaService/GetFileByKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetaServiceServer).GetFileByKey(ctx, req.(*GetFileByKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MetaService_ServiceDesc is the grpc.ServiceDesc for MetaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -314,6 +346,10 @@ var MetaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateMeta",
 			Handler:    _MetaService_UpdateMeta_Handler,
+		},
+		{
+			MethodName: "GetFileByKey",
+			Handler:    _MetaService_GetFileByKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

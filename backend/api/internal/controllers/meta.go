@@ -24,7 +24,8 @@ func InitMetaHandler(r *gin.Engine, metaClient proto.MetaServiceClient, middle m
 	meta := r.Group("/api/meta")
 	{
 		meta.POST("", handler.middle.Protect(), handler.uploadMeta)
-		meta.GET("", handler.getMeta)
+		meta.GET("", handler.middle.Protect(), handler.getMeta)
+		meta.GET("/files", handler.middle.Protect(), handler.getFile)
 		meta.PATCH("/:id", handler.updateMeta)
 		meta.DELETE("", handler.deleteMeta)
 	}
@@ -77,40 +78,44 @@ func (h MetaHandler) uploadMeta(c *gin.Context) {
 }
 
 func (h MetaHandler) getMeta(c *gin.Context) {
-	var res any
-	var err error
+	userId := c.Keys[config.PayloadUserId].(string)
 
-	id := c.Query("id")
-	if id != "" {
-		res, err = h.metaClient.GetMetaById(c, &proto.GetMetaByIdRequest{Id: id})
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"data": res})
+	if userId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user unathorized"})
 		return
 	}
 
-	userId := c.Query("user_id")
-	if userId != "" {
-		res, err = h.metaClient.GetMetaByUser(c, &proto.GetMetaByUserRequest{UserId: userId})
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"data": res})
-		return
-	}
-
-	res, err = h.metaClient.GetAllMeta(c, &proto.GetAllMetaRequest{})
+	res, err := h.metaClient.GetMetaByUser(c, &proto.GetMetaByUserRequest{UserId: userId})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": res})
+}
+
+func (h MetaHandler) getFile(c *gin.Context) {
+	userId := c.Keys[config.PayloadUserId].(string)
+
+	if userId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user unathorized"})
+		return
+	}
+
+	key := c.Query("file_location")
+	if key == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing file key parameter"})
+		return
+	}
+
+	res, err := h.metaClient.GetFileByKey(c, &proto.GetFileByKeyRequest{UserId: userId, Key: key})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	contentType := http.DetectContentType(res.File)
+	c.Data(http.StatusOK, contentType, res.File)
 }
 
 func (h MetaHandler) deleteMeta(c *gin.Context) {
