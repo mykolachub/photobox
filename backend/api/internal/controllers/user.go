@@ -31,6 +31,8 @@ func InitUserHandler(r *gin.Engine, userClient proto.UserServiceClient, cfg User
 		users.GET("/:user_id", handler.getUser)
 		users.PATCH("/:user_id", handler.updateUser)
 		users.DELETE("/:user_id", handler.deleteUser)
+
+		users.PATCH("/storage", handler.updateStorage)
 	}
 }
 
@@ -106,6 +108,26 @@ func (h UserHandler) updateUser(c *gin.Context) {
 	req.Id = user_id
 
 	res, err := h.userClient.UpdateUser(c, &req)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": res})
+}
+
+func (h UserHandler) updateStorage(c *gin.Context) {
+	user_id := c.Keys[config.PayloadUserId].(string)
+
+	var req proto.UpdateStorageUsedRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("update invalid data: %s", err)})
+		return
+	}
+	req.Id = user_id
+
+	res, err := h.userClient.UpdateStorageUsed(c, &req)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return

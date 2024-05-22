@@ -12,5 +12,6 @@ type UserRepo interface {
 	GetUserByEmail(email string) (entity.User, error)
 	GetAllUsers() ([]entity.User, error)
 	UpdateUser(id string, data entity.User) (entity.User, error)
+	UpdateStorage(id string, file_size int64) (entity.User, error)
 	DeleteUser(id string) (entity.User, error)
 }

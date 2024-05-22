@@ -212,6 +212,45 @@ func (r *UserRepo) UpdateUser(id string, data entity.User) (entity.User, error) 
 	return user, nil
 }
 
+func (r *UserRepo) UpdateStorage(id string, file_size int64) (entity.User, error) {
+	user := entity.User{}
+
+	query := `
+	UPDATE
+		users
+	SET
+		storage_used = storage_used + $2
+	WHERE
+		id = $1 AND storage_used + $2 <= max_storage
+	RETURNING
+		id, google_id, email, password,
+		username, picture, storage_used,
+		max_storage, created_at, updated_at
+	`
+	// r.db.
+
+	err := r.db.QueryRow(query, id, file_size).Scan(
+		&user.ID,
+		&user.GoogleID,
+		&user.Email,
+		&user.Password,
+		&user.Username,
+		&user.Picture,
+		&user.StorageUsed,
+		&user.MaxStorage,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err == sql.ErrNoRows {
+		// Handle the case where storage limit is exceeded
+		return entity.User{}, errors.New("insufficient storage space")
+	} else if err != nil {
+		return entity.User{}, fmt.Errorf("error updating storage: %w", err)
+	}
+
+	return user, nil
+}
+
 func (r *UserRepo) DeleteUser(id string) (entity.User, error) {
 	user := entity.User{}
 

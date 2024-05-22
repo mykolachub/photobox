@@ -12,6 +12,7 @@ import (
 	"photobox-meta/proto"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -39,12 +40,14 @@ func Run(env *config.Env) {
 	})
 	handleErr(err, ErrTypeS3InitDB)
 
+	userClient := grpcUserClient(env.GrpcUserServiceHost, env.GrpcUserServicePort)
+
 	storages := services.Storages{
 		MetaRepo: postgres.InitMetaRepo(db),
 		FileRepo: s3.InitFileRepo(s3Client, s3.FileRepoConfig{BucketName: env.S3BucketName}),
 	}
 
-	metaService := services.NewMetaService(storages.MetaRepo, storages.FileRepo, services.MetaServiceConfig{}, l)
+	metaService := services.NewMetaService(storages.MetaRepo, storages.FileRepo, userClient, services.MetaServiceConfig{}, l)
 
 	// gRPC Server
 	grpcServer(env.GrpcPort, *metaService)
@@ -62,6 +65,14 @@ func grpcServer(port string, metaService services.MetaService) {
 	handleErr(s.Serve(lis), ErrTypeGrpcServe)
 }
 
+func grpcUserClient(host, port string) proto.UserServiceClient {
+	conn, err := grpc.NewClient(fmt.Sprintf("%v:%v", host, port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	handleErr(err, ErrTypeGrpcUserDial)
+
+	client := proto.NewUserServiceClient(conn)
+	return client
+}
+
 type AppErrType string
 
 var (
@@ -70,6 +81,7 @@ var (
 	ErrTypeGinRouterRun   AppErrType = "gin router run"
 	ErrTypeGrpcTcpListen  AppErrType = "grpc tcp listen"
 	ErrTypeGrpcServe      AppErrType = "grpc serve"
+	ErrTypeGrpcUserDial   AppErrType = "grpc dial user client"
 )
 
 func handleErr(err error, format AppErrType) {

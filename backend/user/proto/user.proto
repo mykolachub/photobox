@@ -13,6 +13,7 @@ service UserService {
     rpc GetAllUsers (GetAllUsersRequest) returns (GetAllUsersResponse);
     rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
     rpc UpdateUser (UpdateUserRequest) returns (UserResponse);
+    rpc UpdateStorageUsed (UpdateStorageUsedRequest) returns (UpdateStorageUsedResponse);
 }
 
 message UserResponse {
@@ -64,4 +65,15 @@ message DeleteUserRequest {
 message DeleteUserResponse {
     string id = 1;
     bool success = 2;
+}
+
+message UpdateStorageUsedRequest {
+    string id = 1;
+    int64 file_size = 2;
+}
+
+message UpdateStorageUsedResponse {
+    bool success = 1;
+    int64 storage_used = 2;
+    int64 max_storage = 3;
 }

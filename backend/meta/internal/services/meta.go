@@ -16,14 +16,16 @@ type MetaService struct {
 	FileRepo FileRepo
 	proto.UnimplementedMetaServiceServer
 
+	userClient proto.UserServiceClient
+
 	cfg    MetaServiceConfig
 	logger logger.Logger
 }
 
 type MetaServiceConfig struct{}
 
-func NewMetaService(metaRepo MetaRepo, fileRepo FileRepo, cfg MetaServiceConfig, logger logger.Logger) *MetaService {
-	return &MetaService{MetaRepo: metaRepo, FileRepo: fileRepo, cfg: cfg, logger: logger}
+func NewMetaService(metaRepo MetaRepo, fileRepo FileRepo, userClient proto.UserServiceClient, cfg MetaServiceConfig, logger logger.Logger) *MetaService {
+	return &MetaService{MetaRepo: metaRepo, FileRepo: fileRepo, cfg: cfg, logger: logger, userClient: userClient}
 }
 
 func (s *MetaService) UploadMeta(ctx context.Context, in *proto.UplodaMetaRequest) (*proto.MetaResponse, error) {
@@ -33,8 +35,14 @@ func (s *MetaService) UploadMeta(ctx context.Context, in *proto.UplodaMetaReques
 	fileExt := filepath.Ext(fileName)
 	fileLocation := utils.GenerateS3FileLocation(fileName, fileExt)
 
+	// Check storage availability
+	_, err := s.userClient.UpdateStorageUsed(ctx, &proto.UpdateStorageUsedRequest{Id: in.UserId, FileSize: fileSize})
+	if err != nil {
+		return &proto.MetaResponse{}, err
+	}
+
 	// Save file to AWS S3 Bucket
-	err := s.FileRepo.UploadFile(fileLocation, in.File)
+	err = s.FileRepo.UploadFile(fileLocation, in.File)
 	if err != nil {
 		return &proto.MetaResponse{}, err
 	}
@@ -51,8 +59,6 @@ func (s *MetaService) UploadMeta(ctx context.Context, in *proto.UplodaMetaReques
 	if err != nil {
 		return &proto.MetaResponse{}, nil
 	}
-
-	// TODO: update user storage_used
 
 	res := MakeMetaResponse(meta)
 	return &res, nil

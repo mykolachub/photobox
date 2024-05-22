@@ -112,6 +112,15 @@ func (s *UserService) UpdateUser(ctx context.Context, in *proto.UpdateUserReques
 	return &res, nil
 }
 
+func (s *UserService) UpdateStorageUsed(ctx context.Context, in *proto.UpdateStorageUsedRequest) (*proto.UpdateStorageUsedResponse, error) {
+	user, err := s.UserRepo.UpdateStorage(in.Id, in.FileSize)
+	if err != nil {
+		return &proto.UpdateStorageUsedResponse{}, err
+	}
+
+	return &proto.UpdateStorageUsedResponse{Success: true, MaxStorage: user.MaxStorage, StorageUsed: user.StorageUsed}, nil
+}
+
 func (s *UserService) DeleteUser(ctx context.Context, in *proto.DeleteUserRequest) (*proto.DeleteUserResponse, error) {
 	user, err := s.UserRepo.DeleteUser(in.Id)
 	if err != nil {
