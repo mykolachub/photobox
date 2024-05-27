@@ -1,0 +1,15 @@
+.button--small {
+  cursor: pointer;
+  background-color: #F2F2F2;
+  border: none;
+  font-size: 16px;
+  color: #333;
+  display: block;
+  padding: 5px 10px;
+  border-radius: 5px;
+  transition: all 250ms ease;
+}
+
+.button--small:hover {
+  background-color: #D9D9D9;
+}

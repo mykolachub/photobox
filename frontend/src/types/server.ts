@@ -1,3 +1,4 @@
+import { MetaDTO } from './file';
 import { UserDTO } from './user';
 
 export interface ServerResponse<T> {
@@ -24,4 +25,10 @@ export interface LoginGoogleResponse {
 
 export interface GetMeResponse {
   user: UserDTO;
+}
+
+export interface UploadFileResponse extends MetaDTO {}
+
+export interface GetMetaResponse {
+  metas: MetaDTO[];
 }

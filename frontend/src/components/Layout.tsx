@@ -1,31 +1,11 @@
 import React from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
-import authStore from '../stores/auth';
-import AsyncImage from './AsyncImage';
+import { Outlet } from 'react-router-dom';
+import Header from './Header/Header';
 
 const Layout = () => {
-  const { user, logout } = authStore();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/signup');
-  };
-
   return (
     <div className="wrapper">
-      <header>
-        header
-        {user.email && (
-          <>
-            <p>
-              Welcome {user.email} {user.username}
-            </p>
-            <AsyncImage src={user.picture} />
-            <button onClick={handleLogout}>Logout</button>
-          </>
-        )}
-      </header>
+      <Header />
       <main>
         <Outlet />
       </main>

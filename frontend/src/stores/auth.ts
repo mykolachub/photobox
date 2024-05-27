@@ -61,7 +61,7 @@ const authStore = create<AuthState>((set) => ({
     set({ token: localToken, authed: true });
   },
   logout() {
-    localStorage.removeItem('access_token');
+    localStorage.clear();
     set({ user: <UserDTO>{}, token: null, authed: false });
   },
   async me(): Promise<UserDTO> {

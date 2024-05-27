@@ -1,0 +1,45 @@
+.signup__wrapper {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.signup__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.signup__logo {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.signup__google {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 2px solid #F2F2F2;
+  cursor: pointer;
+  background-color: white;
+  transition: all 250ms ease;
+}
+
+.signup__google:hover {
+  border-color: #D9D9D9;
+}
