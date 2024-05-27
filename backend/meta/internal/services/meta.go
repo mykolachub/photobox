@@ -93,7 +93,29 @@ func (s *MetaService) UpdateMeta(ctx context.Context, in *proto.UpdateMetaReques
 }
 
 func (s *MetaService) DeleteMetaById(ctx context.Context, in *proto.DeleteMetaByIdRequest) (*proto.MetaResponse, error) {
-	return &proto.MetaResponse{}, nil
+	meta, err := s.MetaRepo.GetMetaById(in.Id)
+	if err != nil {
+		return &proto.MetaResponse{}, err
+	}
+
+	s.logger.Info(meta)
+	err = s.FileRepo.DeleteFile(meta.FileLocation)
+	if err != nil {
+		return &proto.MetaResponse{}, err
+	}
+
+	meta, err = s.MetaRepo.DeleteMeta(in.Id)
+	if err != nil {
+		return &proto.MetaResponse{}, err
+	}
+
+	_, err = s.userClient.UpdateStorageUsed(ctx, &proto.UpdateStorageUsedRequest{Id: meta.UserID, FileSize: int64(meta.FileSize) * -1})
+	if err != nil {
+		return &proto.MetaResponse{}, err
+	}
+
+	res := MakeMetaResponse(meta)
+	return &res, nil
 }
 
 func (s *MetaService) DeleteMetaByUser(ctx context.Context, in *proto.DeleteMetaByUserRequest) (*proto.DeleteMetaByUserResponse, error) {

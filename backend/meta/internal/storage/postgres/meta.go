@@ -50,7 +50,35 @@ func (r *MetaRepo) CreateMeta(data entity.Meta) (entity.Meta, error) {
 }
 
 func (r *MetaRepo) GetMetaById(id string) (entity.Meta, error) {
-	return entity.Meta{}, nil
+	meta := entity.Meta{}
+
+	query := `
+	SELECT
+		id, user_id,
+		file_location, file_name,
+		file_size, file_ext, file_last_modified,
+		created_at
+	FROM
+		metadata
+	WHERE
+		id = $1
+	`
+
+	err := r.db.QueryRow(query, id).Scan(
+		&meta.ID,
+		&meta.UserID,
+		&meta.FileLocation,
+		&meta.FileName,
+		&meta.FileSize,
+		&meta.FileExt,
+		&meta.FileLastModified,
+		&meta.CreatedAt,
+	)
+	if err != nil {
+		return entity.Meta{}, err
+	}
+
+	return meta, nil
 }
 
 func (r *MetaRepo) GetMetaByFileLocation(fileLocation string) (entity.Meta, error) {
@@ -134,7 +162,34 @@ func (r *MetaRepo) UpdateMeta(id string, data entity.Meta) (entity.Meta, error) 
 }
 
 func (r *MetaRepo) DeleteMeta(id string) (entity.Meta, error) {
-	return entity.Meta{}, nil
+	meta := entity.Meta{}
+
+	query := `
+	DELETE FROM
+		metadata
+	WHERE
+		id = $1
+	RETURNING
+		id, user_id,
+		file_location, file_name,
+		file_size, file_ext, file_last_modified,
+		created_at
+	`
+	err := r.db.QueryRow(query, id).Scan(
+		&meta.ID,
+		&meta.UserID,
+		&meta.FileLocation,
+		&meta.FileName,
+		&meta.FileSize,
+		&meta.FileExt,
+		&meta.FileLastModified,
+		&meta.CreatedAt,
+	)
+	if err != nil {
+		return entity.Meta{}, err
+	}
+
+	return meta, nil
 }
 
 func (r *MetaRepo) DeleteMetaByUser(user_id string) ([]entity.Meta, error) {

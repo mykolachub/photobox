@@ -13,6 +13,7 @@ interface FileState {
   uploadFile: (file: File) => Promise<MetaDTO>;
   getMeta: () => Promise<MetaDTO[]>;
   getFile: (file_location: string) => Promise<Test>;
+  deleteFile: (id: string) => Promise<void>;
 }
 
 interface Test {
@@ -82,6 +83,19 @@ const fileStore = create<FileState>((set) => ({
         files: [...state.files, { file_location, url }],
       }));
       return { url, blob: response.data };
+    } catch (error) {
+      throw new Error('' + error);
+    }
+  },
+  async deleteFile(id: string): Promise<void> {
+    try {
+      const token = `Bearer ${authStore.getState().token}`;
+      const response = await axios.delete(API_URL + `/meta/${id}`, {
+        headers: { Authorization: token },
+      });
+      const { data } = response.data as ServerResponse<void>;
+      console.log(data);
+      return data;
     } catch (error) {
       throw new Error('' + error);
     }

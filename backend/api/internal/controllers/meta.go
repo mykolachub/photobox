@@ -27,7 +27,7 @@ func InitMetaHandler(r *gin.Engine, metaClient proto.MetaServiceClient, middle m
 		meta.GET("", handler.middle.Protect(), handler.getMeta)
 		meta.GET("/files", handler.middle.Protect(), handler.getFile)
 		meta.PATCH("/:id", handler.updateMeta)
-		meta.DELETE("", handler.deleteMeta)
+		meta.DELETE("/:id", handler.deleteMeta)
 	}
 }
 
@@ -119,7 +119,19 @@ func (h MetaHandler) getFile(c *gin.Context) {
 }
 
 func (h MetaHandler) deleteMeta(c *gin.Context) {
+	id := c.Param("id")
+	if len(id) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing id parameter"})
+		return
+	}
 
+	res, err := h.metaClient.DeleteMetaById(c, &proto.DeleteMetaByIdRequest{Id: id})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": res})
 }
 
 func (h MetaHandler) updateMeta(c *gin.Context) {

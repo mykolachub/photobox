@@ -7,6 +7,8 @@ import { MetaDTO } from '../types/file';
 
 import AddIcon from '../assets/images/icon-add.svg';
 import ButtonSmall from '../components/Buttons/ButtonSmall';
+import TrashIcon from '../assets/images/icon-trash.svg';
+import DeleteIcon from '../assets/images/icon-delete.svg';
 
 interface CacheDTO extends MetaDTO {
   imageUrl: string | null;
@@ -24,15 +26,16 @@ const DB_NAME = 'fileCache';
 const STORE_NAME = 'files';
 
 const Home = () => {
-  const { uploadFile, getMeta, getFile } = fileStore();
+  const { uploadFile, getMeta, getFile, deleteFile } = fileStore();
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [images, setImages] = useState<CacheDTO[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [uploadPopupOpen, setUploadPopupOpen] = useState(false);
 
   useEffect(() => {
     const fetchAndCacheImages = async () => {
-      // Fetch metadata from server
+      // Fetch metadata from the server
       const metaList = await getMeta();
       if (!metaList) {
         setLoaded(true);
@@ -48,37 +51,56 @@ const Home = () => {
       // Get cached files from IndexedDB
       const cachedFiles = (await db.getAll(STORE_NAME)) as CacheDTO[];
 
-      // Update cache
-      const updatedCache = [...cachedFiles] as CacheDTO[];
-      for (const meta of metaList) {
-        if (
-          !cachedFiles.some((file) => file.file_location === meta.file_location)
-        ) {
-          const file = { imageUrl: null, ...meta };
-          updatedCache.push(file);
+      // Create sets for efficient comparison
+      const metaFileLocations = new Set(
+        metaList.map((meta) => meta.file_location),
+      );
+      const cachedFileLocations = new Set(
+        cachedFiles.map((file) => file.file_location),
+      );
+
+      // Identify new files to add and missing files to remove
+      const filesToAdd = metaList.filter(
+        (meta) => !cachedFileLocations.has(meta.file_location),
+      );
+      const filesToRemove = cachedFiles.filter(
+        (file) => !metaFileLocations.has(file.file_location),
+      );
+
+      // Update cache and IndexedDB
+      for (const file of filesToRemove) {
+        await db.delete(STORE_NAME, file.file_location);
+        const indexToRemove = cachedFiles.indexOf(file); // Find index for removal
+        if (indexToRemove > -1) {
+          cachedFiles.splice(indexToRemove, 1); // Remove the item
         }
       }
 
-      // Fetch and cache new images
-      for (const file of updatedCache) {
-        if (!file.imageUrl) {
-          const { blob } = await getFile(file.file_location);
+      for (const meta of filesToAdd) {
+        const file = { imageUrl: '', ...meta };
+        cachedFiles.push(file); // Add to cache before fetching
+
+        try {
+          const { blob } = await getFile(meta.file_location);
           const base64 = await blobToBase64(blob);
           file.imageUrl = base64 as string;
-
-          // Store the fetched image in IndexedDB
-          await db.put(STORE_NAME, file);
+          await db.put(STORE_NAME, file); // Store in IndexedDB
+        } catch (error) {
+          console.error('Error fetching or storing image:', error);
+          // Consider removing from cache if fetch fails
+          cachedFiles.pop(); // Remove the last added file (the one that failed)
         }
       }
-      // Update state with cached images
 
-      setImages(updatedCache);
+      // Update state with cached images
+      setImages(cachedFiles); // Update state after modifications
       setLoaded(true);
 
       db.close();
     };
+
     fetchAndCacheImages();
-  }, []);
+  }, [refreshTrigger]);
 
   const groupedImages = images.reduce(
     (acc, file) => {
@@ -115,6 +137,7 @@ const Home = () => {
       }
       setUploadedStatus(0);
       setUploadPopupOpen(false);
+      setRefreshTrigger((prev) => prev + 1);
     }
   };
 
@@ -124,6 +147,11 @@ const Home = () => {
 
   const handleCloseUploadPopup = () => {
     setUploadPopupOpen(false);
+  };
+
+  const handleDeleteFile = async (id: string) => {
+    await deleteFile(id);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   if (!loaded) {
@@ -142,12 +170,14 @@ const Home = () => {
               <p>{date}</p>
               <div className="images__group">
                 {files.map((file) => (
-                  <img
-                    key={file.file_location}
-                    src={file.imageUrl || ''}
-                    alt={file.file_name}
-                    className="home__images"
-                  />
+                  <div key={file.file_location} className="home__images">
+                    <img src={file.imageUrl || ''} alt={file.file_name} />
+                    <div className="home__image_hover">
+                      <button onClick={() => handleDeleteFile(file.id)}>
+                        <img src={DeleteIcon} alt="Delete Photo" />
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
