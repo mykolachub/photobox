@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import fileStore from '../stores/file';
@@ -7,11 +8,13 @@ import { MetaDTO } from '../types/file';
 
 import AddIcon from '../assets/images/icon-add.svg';
 import ButtonSmall from '../components/Buttons/ButtonSmall';
-import TrashIcon from '../assets/images/icon-trash.svg';
 import DeleteIcon from '../assets/images/icon-delete.svg';
+import UploadFileForm from '../components/Forms/UploadFile';
+import classNames from 'classnames';
 
 interface CacheDTO extends MetaDTO {
   imageUrl: string | null;
+  isChecked: boolean;
 }
 
 function blobToBase64(blob: Blob) {
@@ -77,7 +80,7 @@ const Home = () => {
       }
 
       for (const meta of filesToAdd) {
-        const file = { imageUrl: '', ...meta };
+        const file = { imageUrl: '', ...meta, isChecked: false } as CacheDTO;
         cachedFiles.push(file); // Add to cache before fetching
 
         try {
@@ -102,15 +105,94 @@ const Home = () => {
     fetchAndCacheImages();
   }, [refreshTrigger]);
 
-  const groupedImages = images.reduce(
-    (acc, file) => {
-      const dateKey = (file.created_at as Date).toDateString();
-      (acc[dateKey] ??= []).push(file); // Nullish coalescing operator for cleaner syntax
-      return acc;
-    },
-    {} as Record<string, CacheDTO[]>,
-  );
+  // Group images by date
+  const [groupedImages, setGroupedImages] = useState<
+    Record<string, CacheDTO[]>
+  >({});
+  useEffect(() => {
+    console.log('images updated');
+    const grouped = images.reduce(
+      (acc, image) => {
+        const dateKey = (image.created_at as Date).toDateString();
+        (acc[dateKey] ??= []).push(image); // Nullish coalescing operator for cleaner syntax
+        return acc;
+      },
+      {} as Record<string, CacheDTO[]>,
+    );
+    setGroupedImages(grouped);
+  }, [images]);
 
+  const [groupImageCheck, setGroupImagesCheck] = useState<{
+    [key: string]: string;
+  }>({});
+  useEffect(() => {
+    const initialGroupImageCheck = Object.keys(groupedImages).reduce(
+      (acc: { [key: string]: string }, key) => {
+        const files = groupedImages[key];
+        const allChecked = files.every((file) => file.isChecked);
+        const someChecked = files.some((file) => file.isChecked);
+        acc[key] = allChecked
+          ? 'checked'
+          : someChecked
+            ? 'half-checked'
+            : 'unchecked';
+        return acc;
+      },
+      {},
+    );
+    setGroupImagesCheck(initialGroupImageCheck);
+  }, [groupedImages]);
+
+  const handleImageCheck = (location: string) => {
+    setImages(() =>
+      images.map((image) => {
+        if (image.file_location === location) {
+          return { ...image, isChecked: !image.isChecked };
+        }
+        return { ...image };
+      }),
+    );
+  };
+
+  const handleImageGroupCheck = (date: string) => {
+    const filtered = images.filter(
+      ({ created_at }) => (created_at as Date).toDateString() === date,
+    );
+
+    const allChecked = filtered.every((image) => image.isChecked);
+    setImages(() =>
+      images.map((image) => {
+        const createdAt = image.created_at as Date;
+        if (createdAt.toDateString() === date) {
+          return {
+            ...image,
+            isChecked: allChecked ? false : true,
+          };
+        }
+        return { ...image };
+      }),
+    );
+  };
+
+  const handleCancelImageSelect = () => {
+    setImages(() =>
+      images.map((image) => {
+        return {
+          ...image,
+          isChecked: false,
+        };
+      }),
+    );
+  };
+
+  const handleDeleteSelectedImages = () => {
+    const toDelete = images.filter((image) => image.isChecked);
+    for (const image of toDelete) {
+      handleDeleteFile(image.id);
+    }
+  };
+
+  // Uploading files manipulations
   const [files, setFiles] = useState<File[]>();
   const [uploadedStatus, setUploadedStatus] = useState(0);
 
@@ -161,27 +243,82 @@ const Home = () => {
 
   return (
     <div>
+      {images.some((image) => image.isChecked) ? (
+        <div className="home__selected home__selected--active">
+          <div className="home__selected_left">
+            <ButtonSmall message="cancel" onClick={handleCancelImageSelect} />
+            <p>{images.filter((image) => image.isChecked).length} selected</p>
+          </div>
+          <div>
+            <ButtonSmall
+              message="delete"
+              onClick={handleDeleteSelectedImages}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="home__selected"></div>
+      )}
+
       <div className="home__images__wrapper">
         {Object.entries(groupedImages)
           .sort()
           .reverse()
-          .map(([date, files]) => (
-            <div key={date} className="home__images__block">
-              <p>{date}</p>
-              <div className="images__group">
-                {files.map((file) => (
-                  <div key={file.file_location} className="home__images">
-                    <img src={file.imageUrl || ''} alt={file.file_name} />
-                    <div className="home__image_hover">
-                      <button onClick={() => handleDeleteFile(file.id)}>
-                        <img src={DeleteIcon} alt="Delete Photo" />
-                      </button>
+          .map(([date, files]) => {
+            let groupCheckStyle: string;
+            switch (groupImageCheck[date]) {
+              case 'checked':
+                groupCheckStyle = 'home__group_input--checked';
+                break;
+              case 'half-checked':
+                groupCheckStyle = 'home__group_input--half-checked';
+                break;
+              default:
+                groupCheckStyle = 'home__group_input--unchecked';
+                break;
+            }
+
+            return (
+              <div key={date} className="home__images_group">
+                <div>
+                  <label className="home__group_label">
+                    {date}
+                    <input
+                      type="checkbox"
+                      name="checked"
+                      className={classNames(
+                        groupCheckStyle,
+                        'home__group_input',
+                      )}
+                      onChange={() => handleImageGroupCheck(date)}
+                    />
+                    <span className="home__group_checkbox"></span>
+                  </label>
+                </div>
+                <div className="images__group">
+                  {files.map((file) => (
+                    <div key={file.file_location} className="home__images">
+                      <img src={file.imageUrl || ''} alt={file.file_name} />
+                      <div className="home__image_hover">
+                        <label className="home__image_label">
+                          <input
+                            type="checkbox"
+                            name="checked"
+                            checked={file.isChecked}
+                            className="home__image_input"
+                            onChange={() =>
+                              handleImageCheck(file.file_location)
+                            }
+                          />
+                          <span className="home__image_checkbox"></span>
+                        </label>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
       </div>
 
       <button className="home__open_upload" onClick={handleOpenUploadPopup}>
@@ -194,44 +331,7 @@ const Home = () => {
       >
         <div className="home__upload">
           <p className="home__upload_label">Upload Photos</p>
-          <div className="home__dropzone flex items-center justify-center w-full">
-            <label
-              htmlFor="dropzone-file"
-              className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
-            >
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <svg
-                  className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 20 16"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                  />
-                </svg>
-                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                  <span className="font-semibold">Click to upload</span> or drag
-                  and drop
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  SVG, PNG, JPG or GIF
-                </p>
-              </div>
-              <input
-                id="dropzone-file"
-                type="file"
-                className="hidden"
-                onChange={handleFiles}
-                multiple
-              />
-            </label>
-          </div>
+          <UploadFileForm onChange={handleFiles} />
           {files &&
             files.length <= 5 &&
             files?.map((f) => (

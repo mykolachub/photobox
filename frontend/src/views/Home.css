@@ -1,3 +1,30 @@
+.home__selected {
+  margin: 20px;
+  margin-bottom: 0px;
+  padding: 10px;
+  background-color: #f2f2f2;
+  opacity: 0;
+  /* background-color: rgba(46, 204, 113, 0.1); */
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 250ms ease;
+  min-height: 54px;
+  color: #2ECC71;
+  justify-content: space-between;
+}
+
+.home__selected--active {
+  opacity: 1;
+}
+
+.home__selected_left {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 .home__images__wrapper {
   display: flex;
   flex-direction: column;
@@ -5,12 +32,36 @@
   padding: 20px;
 }
 
-.home__images__block {
+.home__group_label {
+  display: inline-block;
+  margin-bottom: 20px;
   font-size: 20px;
+  position: relative;
 }
 
-.home__images__block p {
-  margin-bottom: 20px;
+.home__group_input {
+  position: absolute;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+  appearance: none;
+}
+
+.home__group_checkbox {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 25px;
+  height: 25px;
+  background-image: url('../assets/images/icon-unchecked.svg');
+  background-size: contain;
+}
+
+.home__group_input--checked + .home__group_checkbox {
+  background-image: url('../assets/images/icon-checked.svg');
+}
+
+.home__group_input--half-checked + .home__group_checkbox {
+  background-image: url('../assets/images/icon-half-checked.svg');
 }
 
 .images__group {
@@ -22,6 +73,20 @@
   margin-right: 10px;
   display: inline-block;
   position: relative;
+  transition: all 250ms ease;
+  overflow: hidden;
+  outline: 5px solid transparent;
+  outline-offset: -5px;
+}
+
+.home__images:has(input[type="checkbox"]:checked) {
+  outline: 5px solid #2ECC71;
+  outline-offset: -5px;
+  transition: all 250ms ease;
+}
+
+.home__images:has(input[type="checkbox"]:checked) img {
+  transition: all 250ms ease;
 }
 
 .home__images img {
@@ -29,6 +94,7 @@
   max-height: 200px;
   object-fit: contain;
   display: inline;
+  transition: all 250ms ease;
 }
 
 .home__image_hover{
@@ -43,16 +109,38 @@
 
 
 .home__images:hover .home__image_hover {
-  background-color: rgba(0, 0, 0, 0.4);
   opacity: 1;
 }
 
+.home__image_input{
+  position: absolute;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+  appearance: none;
+}
+
+.home__image_checkbox {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 22.5px;
+  height: 22.5px;
+  background-image: url('../assets/images/icon-unchecked.svg');
+  background-size: contain;
+  cursor: pointer;
+}
+
+.home__image_input:checked + .home__image_checkbox {
+  background-image: url('../assets/images/icon-checked.svg');
+}
+
 .home__image_hover button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
 }
 
 .home__image_hover button img {
