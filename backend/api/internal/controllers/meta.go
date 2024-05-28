@@ -10,16 +10,18 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	pb "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type MetaHandler struct {
 	metaClient proto.MetaServiceClient
 	middle     middlewares.Middleware
+	mq         MQ
 }
 
-func InitMetaHandler(r *gin.Engine, metaClient proto.MetaServiceClient, middle middlewares.Middleware) {
-	handler := MetaHandler{metaClient: metaClient, middle: middle}
+func InitMetaHandler(r *gin.Engine, metaClient proto.MetaServiceClient, middle middlewares.Middleware, mq MQ) {
+	handler := MetaHandler{metaClient: metaClient, middle: middle, mq: mq}
 
 	meta := r.Group("/api/meta")
 	{
@@ -63,18 +65,27 @@ func (h MetaHandler) uploadMeta(c *gin.Context) {
 	}
 	fileLastModified := time.UnixMilli(createdAt)
 
-	res, err := h.metaClient.UploadMeta(c, &proto.UplodaMetaRequest{
+	// Preparing body
+	protoReqBody := &proto.UplodaMetaRequest{
 		UserId:           userId,
 		Filename:         fileHeader.Filename,
 		File:             fileBytes,
 		FileLastModified: timestamppb.New(fileLastModified),
-	})
+	}
+
+	bytesReqBody, err := pb.Marshal(protoReqBody)
 	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal proto request body"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	err = h.mq.Publish(c, "meta_upload", bytesReqBody)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send image to queue"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": "image is uploading..."})
 }
 
 func (h MetaHandler) getMeta(c *gin.Context) {

@@ -15,6 +15,9 @@ type Env struct {
 	GrpcUserServiceHost string `envconfig:"GRPC_USER_SERVICE_HOST"`
 	GrpcMetaServicePort string `envconfig:"GRPC_META_SERVICE_PORT"`
 	GrpcMetaServiceHost string `envconfig:"GRPC_META_SERVICE_HOST"`
+	RabbitMQHost        string `envconfig:"RABBITMQ_HOST"`
+	RabbitMQPort        string `envconfig:"RABBITMQ_PORT"`
+	RabbitMQUser        string `envconfig:"RABBITMQ_USER"`
 }
 
 func ConfigEnv() *Env {

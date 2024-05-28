@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"photobox-api/internal/middlewares"
 	"photobox-api/proto"
 )
@@ -17,4 +18,8 @@ type Configs struct {
 
 type Middles struct {
 	Middleware middlewares.Middleware
+}
+
+type MQ interface {
+	Publish(ctx context.Context, name string, body []byte) error
 }

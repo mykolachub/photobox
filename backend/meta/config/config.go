@@ -21,6 +21,9 @@ type Env struct {
 	S3SecretAccessKey   string `envconfig:"S3_SECRET_ACCESS_KEY"`
 	GrpcUserServicePort string `envconfig:"GRPC_USER_SERVICE_PORT"`
 	GrpcUserServiceHost string `envconfig:"GRPC_USER_SERVICE_HOST"`
+	RabbitMQHost        string `envconfig:"RABBITMQ_HOST"`
+	RabbitMQPort        string `envconfig:"RABBITMQ_PORT"`
+	RabbitMQUser        string `envconfig:"RABBITMQ_USER"`
 }
 
 func ConfigEnv() *Env {

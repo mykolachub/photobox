@@ -98,7 +98,6 @@ func (s *MetaService) DeleteMetaById(ctx context.Context, in *proto.DeleteMetaBy
 		return &proto.MetaResponse{}, err
 	}
 
-	s.logger.Info(meta)
 	err = s.FileRepo.DeleteFile(meta.FileLocation)
 	if err != nil {
 		return &proto.MetaResponse{}, err

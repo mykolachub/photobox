@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -9,16 +10,27 @@ import (
 	"photobox-meta/internal/storage/postgres"
 	"photobox-meta/internal/storage/s3"
 	"photobox-meta/logger"
+	mq "photobox-meta/pkg/mq/rabbitmq"
 	"photobox-meta/proto"
 
+	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+	pb "google.golang.org/protobuf/proto"
 )
 
 func Run(env *config.Env) {
 	// Logger
 	l := logger.NewZap("")
+
+	conn, err := mq.InitRabbitMQConnection(mq.RabbitMQConfig{Host: env.RabbitMQHost, Port: env.RabbitMQPort, User: env.RabbitMQUser})
+	handleErr(err, ErrRabbitMQConn)
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	handleErr(err, ErrRabbitMQOpenChan)
+	defer ch.Close()
 
 	// Database
 	db, err := postgres.InitDBConnection(postgres.PostgresConfig{
@@ -50,7 +62,22 @@ func Run(env *config.Env) {
 	metaService := services.NewMetaService(storages.MetaRepo, storages.FileRepo, userClient, services.MetaServiceConfig{}, l)
 
 	// gRPC Server
-	grpcServer(env.GrpcPort, *metaService)
+	go grpcServer(env.GrpcPort, *metaService)
+
+	rabbit := mq.InitRabbitMQ(ch)
+	err = rabbit.Consume("meta_upload", func(d amqp.Delivery) error {
+		var req proto.UplodaMetaRequest
+		err := pb.Unmarshal(d.Body, &req)
+		if err != nil {
+			return err
+		}
+		_, err = metaService.UploadMeta(context.TODO(), &req)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	handleErr(err, ErrRabbitMQConsume)
 }
 
 func grpcServer(port string, metaService services.MetaService) {
@@ -82,6 +109,9 @@ var (
 	ErrTypeGrpcTcpListen  AppErrType = "grpc tcp listen"
 	ErrTypeGrpcServe      AppErrType = "grpc serve"
 	ErrTypeGrpcUserDial   AppErrType = "grpc dial user client"
+	ErrRabbitMQConn       AppErrType = "rabbitmq failed to connect to RabbitMQ"
+	ErrRabbitMQOpenChan   AppErrType = "rabbitmq failed to open a channel"
+	ErrRabbitMQConsume    AppErrType = "rabbitmq consume failed"
 )
 
 func handleErr(err error, format AppErrType) {

@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter(r *gin.Engine, services Services, configs Configs, middles Middles) *gin.Engine {
+func InitRouter(r *gin.Engine, services Services, configs Configs, middles Middles, mq MQ) *gin.Engine {
 	config.InitCorsConfig()
 	r.Use(cors.New(config.CorsConfig))
 
@@ -24,7 +24,7 @@ func InitRouter(r *gin.Engine, services Services, configs Configs, middles Middl
 	InitUserHandler(r, services.UserClient, configs.UserConfig, middles.Middleware)
 
 	// /api/meta
-	InitMetaHandler(r, services.MetaClient, middles.Middleware)
+	InitMetaHandler(r, services.MetaClient, middles.Middleware, mq)
 
 	return r
 }

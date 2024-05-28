@@ -23,6 +23,8 @@ func InitS3Connection(s3Config S3BucketConfig) (*s3.Client, error) {
 		"",
 	)
 
+	// a := rekognition.NewFromConfig(*aws.NewConfig())
+	// a.DetectLabels(context.TODO(), &rekognition.DetectLabelsInput{Image: &types.Image{Bytes: })
 	cfg, err := awsCfg.LoadDefaultConfig(
 		context.TODO(),
 		awsCfg.WithRegion(s3Config.Region),
