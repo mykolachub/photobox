@@ -196,7 +196,7 @@ const Home = () => {
   const [files, setFiles] = useState<File[]>();
   const [uploadedStatus, setUploadedStatus] = useState(0);
 
-  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelectFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const toUpload = [] as File[];
       for (let i = 0; i < e.target.files.length; i++) {
@@ -331,7 +331,7 @@ const Home = () => {
       >
         <div className="home__upload">
           <p className="home__upload_label">Upload Photos</p>
-          <UploadFileForm onChange={handleFiles} />
+          <UploadFileForm onChange={handleSelectFiles} />
           {files &&
             files.length <= 5 &&
             files?.map((f) => (

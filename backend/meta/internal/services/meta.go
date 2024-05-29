@@ -9,12 +9,14 @@ import (
 	"photobox-meta/logger"
 	"photobox-meta/proto"
 
+	pb "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type MetaService struct {
 	MetaRepo MetaRepo
 	FileRepo FileRepo
+	MQ       MQ
 	proto.UnimplementedMetaServiceServer
 
 	userClient proto.UserServiceClient
@@ -25,8 +27,8 @@ type MetaService struct {
 
 type MetaServiceConfig struct{}
 
-func NewMetaService(metaRepo MetaRepo, fileRepo FileRepo, userClient proto.UserServiceClient, cfg MetaServiceConfig, logger logger.Logger) *MetaService {
-	return &MetaService{MetaRepo: metaRepo, FileRepo: fileRepo, cfg: cfg, logger: logger, userClient: userClient}
+func NewMetaService(metaRepo MetaRepo, fileRepo FileRepo, userClient proto.UserServiceClient, cfg MetaServiceConfig, logger logger.Logger, mq MQ) *MetaService {
+	return &MetaService{MetaRepo: metaRepo, FileRepo: fileRepo, cfg: cfg, logger: logger, userClient: userClient, MQ: mq}
 }
 
 func (s *MetaService) UploadMeta(ctx context.Context, in *proto.UplodaMetaRequest) (*proto.MetaResponse, error) {
@@ -59,6 +61,22 @@ func (s *MetaService) UploadMeta(ctx context.Context, in *proto.UplodaMetaReques
 	})
 	if err != nil {
 		return &proto.MetaResponse{}, nil
+	}
+
+	// Produsing image_detect message to image microservice for image labels detection
+	protoReqBody := &proto.DetectImageLabelsRequest{
+		FileLocation: meta.FileLocation,
+		MetaId:       meta.ID,
+	}
+
+	bytesReqBody, err := pb.Marshal(protoReqBody)
+	if err != nil {
+		return &proto.MetaResponse{}, err
+	}
+
+	err = s.MQ.Publish(ctx, "image_detect", bytesReqBody)
+	if err != nil {
+		return &proto.MetaResponse{}, err
 	}
 
 	res := MakeMetaResponse(meta)

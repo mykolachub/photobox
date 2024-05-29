@@ -26,5 +26,8 @@ func InitRouter(r *gin.Engine, services Services, configs Configs, middles Middl
 	// /api/meta
 	InitMetaHandler(r, services.MetaClient, middles.Middleware, mq)
 
+	// /api/image
+	InitImageHandler(r, services.ImageClient, mq)
+
 	return r
 }

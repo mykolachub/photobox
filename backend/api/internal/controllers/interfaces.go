@@ -7,9 +7,10 @@ import (
 )
 
 type Services struct {
-	AuthClient proto.AuthServiceClient
-	UserClient proto.UserServiceClient
-	MetaClient proto.MetaServiceClient
+	AuthClient  proto.AuthServiceClient
+	UserClient  proto.UserServiceClient
+	MetaClient  proto.MetaServiceClient
+	ImageClient proto.ImageServiceClient
 }
 
 type Configs struct {

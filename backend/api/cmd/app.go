@@ -29,11 +29,13 @@ func Run(env *config.Env) {
 	userClient := grpcUserClient(env.GrpcUserServiceHost, env.GrpcUserServicePort)
 	authClient := grpcAuthClient(env.GrpcAuthServiceHost, env.GrpcAuthServicePort)
 	metaClient := grpcMetaClient(env.GrpcMetaServiceHost, env.GrpcMetaServicePort)
+	imageClient := grpcImageClient(env.GrpcImageServiceHost, env.GrpcImageServicePort)
 
 	services := controllers.Services{
-		AuthClient: authClient,
-		UserClient: userClient,
-		MetaClient: metaClient,
+		AuthClient:  authClient,
+		UserClient:  userClient,
+		MetaClient:  metaClient,
+		ImageClient: imageClient,
 	}
 
 	configs := controllers.Configs{
@@ -77,6 +79,14 @@ func grpcMetaClient(host, port string) proto.MetaServiceClient {
 	handleErr(err, ErrTypeGrpcMetaDial)
 
 	client := proto.NewMetaServiceClient(conn)
+	return client
+}
+
+func grpcImageClient(host, port string) proto.ImageServiceClient {
+	conn, err := grpc.NewClient(fmt.Sprintf("%v:%v", host, port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	handleErr(err, ErrTypeGrpcMetaDial)
+
+	client := proto.NewImageServiceClient(conn)
 	return client
 }
 

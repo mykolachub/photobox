@@ -32,6 +32,8 @@ func Run(env *config.Env) {
 	handleErr(err, ErrRabbitMQOpenChan)
 	defer ch.Close()
 
+	mq := mq.InitRabbitMQ(ch)
+
 	// Database
 	db, err := postgres.InitDBConnection(postgres.PostgresConfig{
 		DBUser:     env.PostgresDBUser,
@@ -59,23 +61,23 @@ func Run(env *config.Env) {
 		FileRepo: s3.InitFileRepo(s3Client, s3.FileRepoConfig{BucketName: env.S3BucketName}),
 	}
 
-	metaService := services.NewMetaService(storages.MetaRepo, storages.FileRepo, userClient, services.MetaServiceConfig{}, l)
+	metaService := services.NewMetaService(storages.MetaRepo, storages.FileRepo, userClient, services.MetaServiceConfig{}, l, mq)
 
 	// gRPC Server
 	go grpcServer(env.GrpcPort, *metaService)
 
-	rabbit := mq.InitRabbitMQ(ch)
-	err = rabbit.Consume("meta_upload", func(d amqp.Delivery) error {
+	err = mq.Consume("meta_upload", func(d amqp.Delivery) {
 		var req proto.UplodaMetaRequest
 		err := pb.Unmarshal(d.Body, &req)
 		if err != nil {
-			return err
+			log.Printf("RabbitMQ [meta_upload] ERROR: %v", err)
 		}
+		log.Printf("RabbitMQ [meta_upload] Message: %+v", &req)
+
 		_, err = metaService.UploadMeta(context.TODO(), &req)
 		if err != nil {
-			return err
+			log.Printf("RabbitMQ [meta_upload] Message: %+v ERROR: %v", &req, err)
 		}
-		return nil
 	})
 	handleErr(err, ErrRabbitMQConsume)
 }

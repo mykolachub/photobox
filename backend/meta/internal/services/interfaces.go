@@ -1,6 +1,9 @@
 package services
 
-import "photobox-meta/internal/models/entity"
+import (
+	"context"
+	"photobox-meta/internal/models/entity"
+)
 
 type Storages struct {
 	MetaRepo MetaRepo
@@ -23,4 +26,8 @@ type FileRepo interface {
 	UploadFile(filePath string, file []byte) error
 	DeleteFile(filePath string) error
 	DeleteFiles(objectKeys []string) error
+}
+
+type MQ interface {
+	Publish(ctx context.Context, name string, body []byte) error
 }

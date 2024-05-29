@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package image;
+
+option go_package = "photobox-image/proto";
+
+service ImageService {
+    rpc DetectImageLabels (DetectImageLabelsRequest) returns (DetectImageLabelsResponce);
+}
+
+message DetectImageLabelsRequest {
+    string meta_id = 1;
+    string file_location = 2;
+}
+
+message DetectImageLabelsResponce {}
