@@ -1,16 +1,16 @@
 /* eslint-disable indent */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import fileStore from '../stores/file';
-import { openDB, deleteDB } from 'idb';
+import { openDB } from 'idb';
 import './Home.css';
 import { MetaDTO } from '../types/file';
 
 import AddIcon from '../assets/images/icon-add.svg';
 import ButtonSmall from '../components/Buttons/ButtonSmall';
-import DeleteIcon from '../assets/images/icon-delete.svg';
+import ImageIcon from '../assets/images/icon-image.svg';
 import UploadFileForm from '../components/Forms/UploadFile';
 import classNames from 'classnames';
+import searchStore from '../stores/search';
 
 interface CacheDTO extends MetaDTO {
   imageUrl: string | null;
@@ -18,7 +18,7 @@ interface CacheDTO extends MetaDTO {
 }
 
 function blobToBase64(blob: Blob) {
-  return new Promise((resolve, _) => {
+  return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result);
     reader.readAsDataURL(blob);
@@ -30,9 +30,18 @@ const STORE_NAME = 'files';
 
 const Home = () => {
   const { uploadFile, getMeta, getFile, deleteFile } = fileStore();
+  const { search } = searchStore();
 
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [refreshMetaTrigger, setRefreshMetaTrigger] = useState(0);
+  const [refreshSearchInputTrigger, setRefreshSearchInputTrigger] = useState(0);
+
   const [images, setImages] = useState<CacheDTO[]>([]);
+  const [imagesCopy, setImagesCopy] = useState<CacheDTO[]>([]);
+  const [indexLabelToImage, setIndexLabelToImage] = useState<{
+    [key: string]: CacheDTO[];
+  }>({});
+
+  // const [searchInput, setSearchInput] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [uploadPopupOpen, setUploadPopupOpen] = useState(false);
 
@@ -103,15 +112,57 @@ const Home = () => {
     };
 
     fetchAndCacheImages();
-  }, [refreshTrigger]);
+  }, [refreshMetaTrigger]);
+
+  // when images changed, imagesCopy will be affected to
+  // imagesCopy is for image grouping, searching
+  useEffect(() => {
+    // Creating Indexing object Label to Images
+    const newIndexLabelToImage: { [key: string]: CacheDTO[] } = {};
+    images.forEach((image) => {
+      image.labels.forEach((label) => {
+        const value = label.value.toLowerCase();
+        if (!newIndexLabelToImage[value]) {
+          newIndexLabelToImage[value] = [];
+        }
+        newIndexLabelToImage[value].push(image);
+      });
+    });
+    setIndexLabelToImage(newIndexLabelToImage);
+    if (search) {
+      setRefreshSearchInputTrigger((prev) => prev + 1);
+    }
+    setImagesCopy(images);
+  }, [images]);
+
+  // Searching images by label
+  useEffect(() => {
+    if (!search) {
+      setImagesCopy(images);
+      return;
+    }
+    const matchingMetas: CacheDTO[] = [];
+
+    Object.keys(indexLabelToImage).forEach((label) => {
+      if (
+        label.startsWith(search) || // starts with
+        label.endsWith(search) || // ends with
+        label.includes(search) // contains
+      ) {
+        matchingMetas.push(...indexLabelToImage[label]);
+      }
+    });
+
+    const uniqueMatchingMetas = [...new Set(matchingMetas)];
+    setImagesCopy(uniqueMatchingMetas);
+  }, [search, refreshSearchInputTrigger]);
 
   // Group images by date
   const [groupedImages, setGroupedImages] = useState<
     Record<string, CacheDTO[]>
   >({});
   useEffect(() => {
-    console.log('images updated');
-    const grouped = images.reduce(
+    const grouped = imagesCopy.reduce(
       (acc, image) => {
         const dateKey = (image.created_at as Date).toDateString();
         (acc[dateKey] ??= []).push(image); // Nullish coalescing operator for cleaner syntax
@@ -120,7 +171,7 @@ const Home = () => {
       {} as Record<string, CacheDTO[]>,
     );
     setGroupedImages(grouped);
-  }, [images]);
+  }, [imagesCopy]);
 
   const [groupImageCheck, setGroupImagesCheck] = useState<{
     [key: string]: string;
@@ -155,7 +206,25 @@ const Home = () => {
   };
 
   const handleImageGroupCheck = (date: string) => {
-    const filtered = images.filter(
+    if (search) {
+      const t = groupedImages[date].map((image) => image.id);
+      const allChecked = groupedImages[date].every((image) => image.isChecked);
+      setImages(() =>
+        images.map((image) => {
+          if (t.includes(image.id)) {
+            return {
+              ...image,
+              // isChecked: true,
+              isChecked: allChecked ? false : true,
+            };
+          }
+          return { ...image };
+        }),
+      );
+      return;
+    }
+
+    const filtered = imagesCopy.filter(
       ({ created_at }) => (created_at as Date).toDateString() === date,
     );
 
@@ -219,7 +288,7 @@ const Home = () => {
       }
       setUploadedStatus(0);
       setUploadPopupOpen(false);
-      setRefreshTrigger((prev) => prev + 1);
+      setRefreshMetaTrigger((prev) => prev + 1);
     }
   };
 
@@ -233,7 +302,7 @@ const Home = () => {
 
   const handleDeleteFile = async (id: string) => {
     await deleteFile(id);
-    setRefreshTrigger((prev) => prev + 1);
+    setRefreshMetaTrigger((prev) => prev + 1);
   };
 
   if (!loaded) {
@@ -249,6 +318,19 @@ const Home = () => {
             <ButtonSmall message="cancel" onClick={handleCancelImageSelect} />
             <p>{images.filter((image) => image.isChecked).length} selected</p>
           </div>
+          <div className="home__selected_images">
+            {images.map((image) =>
+              image.isChecked ? (
+                <img
+                  key={image.id}
+                  src={image.imageUrl || ''}
+                  className="home__selected_image"
+                />
+              ) : (
+                <></>
+              ),
+            )}
+          </div>
           <div>
             <ButtonSmall
               message="delete"
@@ -261,64 +343,89 @@ const Home = () => {
       )}
 
       <div className="home__images__wrapper">
-        {Object.entries(groupedImages)
-          .sort()
-          .reverse()
-          .map(([date, files]) => {
-            let groupCheckStyle: string;
-            switch (groupImageCheck[date]) {
-              case 'checked':
-                groupCheckStyle = 'home__group_input--checked';
-                break;
-              case 'half-checked':
-                groupCheckStyle = 'home__group_input--half-checked';
-                break;
-              default:
-                groupCheckStyle = 'home__group_input--unchecked';
-                break;
-            }
+        {Object.keys(groupedImages).length ? (
+          Object.keys(groupedImages)
+            .sort(
+              (a, b) =>
+                new Date(a).getMilliseconds() - new Date(b).getMilliseconds(),
+            )
+            .reverse()
+            .map((date) => {
+              const files = groupedImages[date];
+              let groupCheckStyle: string;
+              switch (groupImageCheck[date]) {
+                case 'checked':
+                  groupCheckStyle = 'home__group_input--checked';
+                  break;
+                case 'half-checked':
+                  groupCheckStyle = 'home__group_input--half-checked';
+                  break;
+                default:
+                  groupCheckStyle = 'home__group_input--unchecked';
+                  break;
+              }
 
-            return (
-              <div key={date} className="home__images_group">
-                <div>
-                  <label className="home__group_label">
-                    {date}
-                    <input
-                      type="checkbox"
-                      name="checked"
-                      className={classNames(
-                        groupCheckStyle,
-                        'home__group_input',
-                      )}
-                      onChange={() => handleImageGroupCheck(date)}
-                    />
-                    <span className="home__group_checkbox"></span>
-                  </label>
-                </div>
-                <div className="images__group">
-                  {files.map((file) => (
-                    <div key={file.file_location} className="home__images">
-                      <img src={file.imageUrl || ''} alt={file.file_name} />
-                      <div className="home__image_hover">
-                        <label className="home__image_label">
-                          <input
-                            type="checkbox"
-                            name="checked"
-                            checked={file.isChecked}
-                            className="home__image_input"
-                            onChange={() =>
-                              handleImageCheck(file.file_location)
-                            }
-                          />
-                          <span className="home__image_checkbox"></span>
-                        </label>
+              return (
+                <div key={date} className="home__images_group">
+                  <div>
+                    <label className="home__group_label">
+                      {date}
+                      <input
+                        type="checkbox"
+                        name="checked"
+                        className={classNames(
+                          groupCheckStyle,
+                          'home__group_input',
+                        )}
+                        onChange={() => handleImageGroupCheck(date)}
+                      />
+                      <span className="home__group_checkbox"></span>
+                    </label>
+                  </div>
+                  <div className="images__group">
+                    {files.map((file) => (
+                      <div key={file.file_location} className="home__images">
+                        <img src={file.imageUrl || ''} alt={file.file_name} />
+                        <div className="home__image_hover">
+                          <label className="home__image_label">
+                            <input
+                              type="checkbox"
+                              name="checked"
+                              checked={file.isChecked}
+                              className="home__image_input"
+                              onChange={() =>
+                                handleImageCheck(file.file_location)
+                              }
+                            />
+                            <span className="home__image_checkbox"></span>
+                          </label>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+        ) : (
+          <div className="home__noimages">
+            <img
+              src={ImageIcon}
+              alt="No Photos"
+              className="home__noimages_icon"
+            />
+            {search ? (
+              <p>No images found</p>
+            ) : (
+              <>
+                <p>No images yet</p>
+                <ButtonSmall
+                  message="Upload Photos"
+                  onClick={handleOpenUploadPopup}
+                />
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <button className="home__open_upload" onClick={handleOpenUploadPopup}>

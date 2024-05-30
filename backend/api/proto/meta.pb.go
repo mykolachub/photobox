@@ -32,9 +32,10 @@ type MetaResponse struct {
 	FileName         string                 `protobuf:"bytes,4,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
 	FileSize         int64                  `protobuf:"varint,5,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
 	FileExt          string                 `protobuf:"bytes,6,opt,name=file_ext,json=fileExt,proto3" json:"file_ext,omitempty"`
-	FileLastModified *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=file_last_modified,json=fileLastModified,proto3" json:"file_last_modified,omitempty"`
+	Labels           []*Label               `protobuf:"bytes,7,rep,name=labels,proto3" json:"labels,omitempty"`
+	FileLastModified *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=file_last_modified,json=fileLastModified,proto3" json:"file_last_modified,omitempty"`
 	// TODO: add keywords
-	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 }
 
 func (x *MetaResponse) Reset() {
@@ -111,6 +112,13 @@ func (x *MetaResponse) GetFileExt() string {
 	return ""
 }
 
+func (x *MetaResponse) GetLabels() []*Label {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
 func (x *MetaResponse) GetFileLastModified() *timestamppb.Timestamp {
 	if x != nil {
 		return x.FileLastModified
@@ -123,6 +131,69 @@ func (x *MetaResponse) GetCreatedAt() *timestamppb.Timestamp {
 		return x.CreatedAt
 	}
 	return nil
+}
+
+type Label struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id              string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Value           string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	MetadataLabelId string `protobuf:"bytes,3,opt,name=metadata_label_id,json=metadataLabelId,proto3" json:"metadata_label_id,omitempty"`
+}
+
+func (x *Label) Reset() {
+	*x = Label{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_meta_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Label) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Label) ProtoMessage() {}
+
+func (x *Label) ProtoReflect() protoreflect.Message {
+	mi := &file_meta_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Label.ProtoReflect.Descriptor instead.
+func (*Label) Descriptor() ([]byte, []int) {
+	return file_meta_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Label) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Label) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+func (x *Label) GetMetadataLabelId() string {
+	if x != nil {
+		return x.MetadataLabelId
+	}
+	return ""
 }
 
 type UplodaMetaRequest struct {
@@ -139,7 +210,7 @@ type UplodaMetaRequest struct {
 func (x *UplodaMetaRequest) Reset() {
 	*x = UplodaMetaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[1]
+		mi := &file_meta_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -152,7 +223,7 @@ func (x *UplodaMetaRequest) String() string {
 func (*UplodaMetaRequest) ProtoMessage() {}
 
 func (x *UplodaMetaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[1]
+	mi := &file_meta_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -165,7 +236,7 @@ func (x *UplodaMetaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UplodaMetaRequest.ProtoReflect.Descriptor instead.
 func (*UplodaMetaRequest) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{1}
+	return file_meta_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *UplodaMetaRequest) GetUserId() string {
@@ -207,7 +278,7 @@ type GetMetaByIdRequest struct {
 func (x *GetMetaByIdRequest) Reset() {
 	*x = GetMetaByIdRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[2]
+		mi := &file_meta_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -220,7 +291,7 @@ func (x *GetMetaByIdRequest) String() string {
 func (*GetMetaByIdRequest) ProtoMessage() {}
 
 func (x *GetMetaByIdRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[2]
+	mi := &file_meta_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -233,7 +304,7 @@ func (x *GetMetaByIdRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMetaByIdRequest.ProtoReflect.Descriptor instead.
 func (*GetMetaByIdRequest) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{2}
+	return file_meta_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetMetaByIdRequest) GetId() string {
@@ -254,7 +325,7 @@ type GetMetaByUserRequest struct {
 func (x *GetMetaByUserRequest) Reset() {
 	*x = GetMetaByUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[3]
+		mi := &file_meta_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -267,7 +338,7 @@ func (x *GetMetaByUserRequest) String() string {
 func (*GetMetaByUserRequest) ProtoMessage() {}
 
 func (x *GetMetaByUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[3]
+	mi := &file_meta_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -280,7 +351,7 @@ func (x *GetMetaByUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMetaByUserRequest.ProtoReflect.Descriptor instead.
 func (*GetMetaByUserRequest) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{3}
+	return file_meta_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetMetaByUserRequest) GetUserId() string {
@@ -301,7 +372,7 @@ type GetMetaByUserResponse struct {
 func (x *GetMetaByUserResponse) Reset() {
 	*x = GetMetaByUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[4]
+		mi := &file_meta_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -314,7 +385,7 @@ func (x *GetMetaByUserResponse) String() string {
 func (*GetMetaByUserResponse) ProtoMessage() {}
 
 func (x *GetMetaByUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[4]
+	mi := &file_meta_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -327,7 +398,7 @@ func (x *GetMetaByUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMetaByUserResponse.ProtoReflect.Descriptor instead.
 func (*GetMetaByUserResponse) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{4}
+	return file_meta_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetMetaByUserResponse) GetMetas() []*MetaResponse {
@@ -346,7 +417,7 @@ type GetAllMetaRequest struct {
 func (x *GetAllMetaRequest) Reset() {
 	*x = GetAllMetaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[5]
+		mi := &file_meta_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -359,7 +430,7 @@ func (x *GetAllMetaRequest) String() string {
 func (*GetAllMetaRequest) ProtoMessage() {}
 
 func (x *GetAllMetaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[5]
+	mi := &file_meta_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -372,7 +443,7 @@ func (x *GetAllMetaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllMetaRequest.ProtoReflect.Descriptor instead.
 func (*GetAllMetaRequest) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{5}
+	return file_meta_proto_rawDescGZIP(), []int{6}
 }
 
 type GetAllMetaResponse struct {
@@ -386,7 +457,7 @@ type GetAllMetaResponse struct {
 func (x *GetAllMetaResponse) Reset() {
 	*x = GetAllMetaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[6]
+		mi := &file_meta_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -399,7 +470,7 @@ func (x *GetAllMetaResponse) String() string {
 func (*GetAllMetaResponse) ProtoMessage() {}
 
 func (x *GetAllMetaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[6]
+	mi := &file_meta_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -412,7 +483,7 @@ func (x *GetAllMetaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllMetaResponse.ProtoReflect.Descriptor instead.
 func (*GetAllMetaResponse) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{6}
+	return file_meta_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetAllMetaResponse) GetMetas() []*MetaResponse {
@@ -433,7 +504,7 @@ type DeleteMetaByIdRequest struct {
 func (x *DeleteMetaByIdRequest) Reset() {
 	*x = DeleteMetaByIdRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[7]
+		mi := &file_meta_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -446,7 +517,7 @@ func (x *DeleteMetaByIdRequest) String() string {
 func (*DeleteMetaByIdRequest) ProtoMessage() {}
 
 func (x *DeleteMetaByIdRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[7]
+	mi := &file_meta_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -459,7 +530,7 @@ func (x *DeleteMetaByIdRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMetaByIdRequest.ProtoReflect.Descriptor instead.
 func (*DeleteMetaByIdRequest) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{7}
+	return file_meta_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *DeleteMetaByIdRequest) GetId() string {
@@ -480,7 +551,7 @@ type DeleteMetaByUserRequest struct {
 func (x *DeleteMetaByUserRequest) Reset() {
 	*x = DeleteMetaByUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[8]
+		mi := &file_meta_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -493,7 +564,7 @@ func (x *DeleteMetaByUserRequest) String() string {
 func (*DeleteMetaByUserRequest) ProtoMessage() {}
 
 func (x *DeleteMetaByUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[8]
+	mi := &file_meta_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -506,7 +577,7 @@ func (x *DeleteMetaByUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMetaByUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteMetaByUserRequest) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{8}
+	return file_meta_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteMetaByUserRequest) GetUserId() string {
@@ -527,7 +598,7 @@ type DeleteMetaByUserResponse struct {
 func (x *DeleteMetaByUserResponse) Reset() {
 	*x = DeleteMetaByUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[9]
+		mi := &file_meta_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -540,7 +611,7 @@ func (x *DeleteMetaByUserResponse) String() string {
 func (*DeleteMetaByUserResponse) ProtoMessage() {}
 
 func (x *DeleteMetaByUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[9]
+	mi := &file_meta_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -553,7 +624,7 @@ func (x *DeleteMetaByUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMetaByUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteMetaByUserResponse) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{9}
+	return file_meta_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *DeleteMetaByUserResponse) GetDeletedMetas() []*MetaResponse {
@@ -575,7 +646,7 @@ type UpdateMetaRequest struct {
 func (x *UpdateMetaRequest) Reset() {
 	*x = UpdateMetaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[10]
+		mi := &file_meta_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -588,7 +659,7 @@ func (x *UpdateMetaRequest) String() string {
 func (*UpdateMetaRequest) ProtoMessage() {}
 
 func (x *UpdateMetaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[10]
+	mi := &file_meta_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -601,7 +672,7 @@ func (x *UpdateMetaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMetaRequest.ProtoReflect.Descriptor instead.
 func (*UpdateMetaRequest) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{10}
+	return file_meta_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UpdateMetaRequest) GetUserId() string {
@@ -630,7 +701,7 @@ type GetFileByKeyRequest struct {
 func (x *GetFileByKeyRequest) Reset() {
 	*x = GetFileByKeyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[11]
+		mi := &file_meta_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -643,7 +714,7 @@ func (x *GetFileByKeyRequest) String() string {
 func (*GetFileByKeyRequest) ProtoMessage() {}
 
 func (x *GetFileByKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[11]
+	mi := &file_meta_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -656,7 +727,7 @@ func (x *GetFileByKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFileByKeyRequest.ProtoReflect.Descriptor instead.
 func (*GetFileByKeyRequest) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{11}
+	return file_meta_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetFileByKeyRequest) GetUserId() string {
@@ -684,7 +755,7 @@ type FileResponse struct {
 func (x *FileResponse) Reset() {
 	*x = FileResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_meta_proto_msgTypes[12]
+		mi := &file_meta_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -697,7 +768,7 @@ func (x *FileResponse) String() string {
 func (*FileResponse) ProtoMessage() {}
 
 func (x *FileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_meta_proto_msgTypes[12]
+	mi := &file_meta_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -710,7 +781,7 @@ func (x *FileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileResponse.ProtoReflect.Descriptor instead.
 func (*FileResponse) Descriptor() ([]byte, []int) {
-	return file_meta_proto_rawDescGZIP(), []int{12}
+	return file_meta_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *FileResponse) GetFile() []byte {
@@ -726,7 +797,7 @@ var file_meta_proto_rawDesc = []byte{
 	0x0a, 0x0a, 0x6d, 0x65, 0x74, 0x61, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x04, 0x6d, 0x65,
 	0x74, 0x61, 0x1a, 0x1f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x22, 0xb6, 0x02, 0x0a, 0x0c, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x74, 0x6f, 0x22, 0xdb, 0x02, 0x0a, 0x0c, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70,
 	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x02, 0x69, 0x64, 0x12, 0x17, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18,
 	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x23, 0x0a,
@@ -737,15 +808,23 @@ var file_meta_proto_rawDesc = []byte{
 	0x1b, 0x0a, 0x09, 0x66, 0x69, 0x6c, 0x65, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x05, 0x20, 0x01,
 	0x28, 0x03, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x12, 0x19, 0x0a, 0x08,
 	0x66, 0x69, 0x6c, 0x65, 0x5f, 0x65, 0x78, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
-	0x66, 0x69, 0x6c, 0x65, 0x45, 0x78, 0x74, 0x12, 0x48, 0x0a, 0x12, 0x66, 0x69, 0x6c, 0x65, 0x5f,
-	0x6c, 0x61, 0x73, 0x74, 0x5f, 0x6d, 0x6f, 0x64, 0x69, 0x66, 0x69, 0x65, 0x64, 0x18, 0x07, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52,
-	0x10, 0x66, 0x69, 0x6c, 0x65, 0x4c, 0x61, 0x73, 0x74, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x69, 0x65,
-	0x64, 0x12, 0x39, 0x0a, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18,
-	0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
-	0x70, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x22, 0xc2, 0x01, 0x0a,
+	0x66, 0x69, 0x6c, 0x65, 0x45, 0x78, 0x74, 0x12, 0x23, 0x0a, 0x06, 0x6c, 0x61, 0x62, 0x65, 0x6c,
+	0x73, 0x18, 0x07, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x6d, 0x65, 0x74, 0x61, 0x2e, 0x4c,
+	0x61, 0x62, 0x65, 0x6c, 0x52, 0x06, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x12, 0x48, 0x0a, 0x12,
+	0x66, 0x69, 0x6c, 0x65, 0x5f, 0x6c, 0x61, 0x73, 0x74, 0x5f, 0x6d, 0x6f, 0x64, 0x69, 0x66, 0x69,
+	0x65, 0x64, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
+	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73,
+	0x74, 0x61, 0x6d, 0x70, 0x52, 0x10, 0x66, 0x69, 0x6c, 0x65, 0x4c, 0x61, 0x73, 0x74, 0x4d, 0x6f,
+	0x64, 0x69, 0x66, 0x69, 0x65, 0x64, 0x12, 0x39, 0x0a, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65,
+	0x64, 0x5f, 0x61, 0x74, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d,
+	0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41,
+	0x74, 0x22, 0x59, 0x0a, 0x05, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x12, 0x2a, 0x0a, 0x11, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x5f, 0x6c, 0x61, 0x62,
+	0x65, 0x6c, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x6d, 0x65, 0x74,
+	0x61, 0x64, 0x61, 0x74, 0x61, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x49, 0x64, 0x22, 0xc2, 0x01, 0x0a,
 	0x11, 0x55, 0x70, 0x6c, 0x6f, 0x64, 0x61, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65,
 	0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x09, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x66,
@@ -846,51 +925,53 @@ func file_meta_proto_rawDescGZIP() []byte {
 	return file_meta_proto_rawDescData
 }
 
-var file_meta_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_meta_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_meta_proto_goTypes = []interface{}{
 	(*MetaResponse)(nil),             // 0: meta.MetaResponse
-	(*UplodaMetaRequest)(nil),        // 1: meta.UplodaMetaRequest
-	(*GetMetaByIdRequest)(nil),       // 2: meta.GetMetaByIdRequest
-	(*GetMetaByUserRequest)(nil),     // 3: meta.GetMetaByUserRequest
-	(*GetMetaByUserResponse)(nil),    // 4: meta.GetMetaByUserResponse
-	(*GetAllMetaRequest)(nil),        // 5: meta.GetAllMetaRequest
-	(*GetAllMetaResponse)(nil),       // 6: meta.GetAllMetaResponse
-	(*DeleteMetaByIdRequest)(nil),    // 7: meta.DeleteMetaByIdRequest
-	(*DeleteMetaByUserRequest)(nil),  // 8: meta.DeleteMetaByUserRequest
-	(*DeleteMetaByUserResponse)(nil), // 9: meta.DeleteMetaByUserResponse
-	(*UpdateMetaRequest)(nil),        // 10: meta.UpdateMetaRequest
-	(*GetFileByKeyRequest)(nil),      // 11: meta.GetFileByKeyRequest
-	(*FileResponse)(nil),             // 12: meta.FileResponse
-	(*timestamppb.Timestamp)(nil),    // 13: google.protobuf.Timestamp
+	(*Label)(nil),                    // 1: meta.Label
+	(*UplodaMetaRequest)(nil),        // 2: meta.UplodaMetaRequest
+	(*GetMetaByIdRequest)(nil),       // 3: meta.GetMetaByIdRequest
+	(*GetMetaByUserRequest)(nil),     // 4: meta.GetMetaByUserRequest
+	(*GetMetaByUserResponse)(nil),    // 5: meta.GetMetaByUserResponse
+	(*GetAllMetaRequest)(nil),        // 6: meta.GetAllMetaRequest
+	(*GetAllMetaResponse)(nil),       // 7: meta.GetAllMetaResponse
+	(*DeleteMetaByIdRequest)(nil),    // 8: meta.DeleteMetaByIdRequest
+	(*DeleteMetaByUserRequest)(nil),  // 9: meta.DeleteMetaByUserRequest
+	(*DeleteMetaByUserResponse)(nil), // 10: meta.DeleteMetaByUserResponse
+	(*UpdateMetaRequest)(nil),        // 11: meta.UpdateMetaRequest
+	(*GetFileByKeyRequest)(nil),      // 12: meta.GetFileByKeyRequest
+	(*FileResponse)(nil),             // 13: meta.FileResponse
+	(*timestamppb.Timestamp)(nil),    // 14: google.protobuf.Timestamp
 }
 var file_meta_proto_depIdxs = []int32{
-	13, // 0: meta.MetaResponse.file_last_modified:type_name -> google.protobuf.Timestamp
-	13, // 1: meta.MetaResponse.created_at:type_name -> google.protobuf.Timestamp
-	13, // 2: meta.UplodaMetaRequest.file_last_modified:type_name -> google.protobuf.Timestamp
-	0,  // 3: meta.GetMetaByUserResponse.metas:type_name -> meta.MetaResponse
-	0,  // 4: meta.GetAllMetaResponse.metas:type_name -> meta.MetaResponse
-	0,  // 5: meta.DeleteMetaByUserResponse.deleted_metas:type_name -> meta.MetaResponse
-	1,  // 6: meta.MetaService.UploadMeta:input_type -> meta.UplodaMetaRequest
-	2,  // 7: meta.MetaService.GetMetaById:input_type -> meta.GetMetaByIdRequest
-	3,  // 8: meta.MetaService.GetMetaByUser:input_type -> meta.GetMetaByUserRequest
-	5,  // 9: meta.MetaService.GetAllMeta:input_type -> meta.GetAllMetaRequest
-	7,  // 10: meta.MetaService.DeleteMetaById:input_type -> meta.DeleteMetaByIdRequest
-	8,  // 11: meta.MetaService.DeleteMetaByUser:input_type -> meta.DeleteMetaByUserRequest
-	10, // 12: meta.MetaService.UpdateMeta:input_type -> meta.UpdateMetaRequest
-	11, // 13: meta.MetaService.GetFileByKey:input_type -> meta.GetFileByKeyRequest
-	0,  // 14: meta.MetaService.UploadMeta:output_type -> meta.MetaResponse
-	0,  // 15: meta.MetaService.GetMetaById:output_type -> meta.MetaResponse
-	4,  // 16: meta.MetaService.GetMetaByUser:output_type -> meta.GetMetaByUserResponse
-	6,  // 17: meta.MetaService.GetAllMeta:output_type -> meta.GetAllMetaResponse
-	0,  // 18: meta.MetaService.DeleteMetaById:output_type -> meta.MetaResponse
-	9,  // 19: meta.MetaService.DeleteMetaByUser:output_type -> meta.DeleteMetaByUserResponse
-	0,  // 20: meta.MetaService.UpdateMeta:output_type -> meta.MetaResponse
-	12, // 21: meta.MetaService.GetFileByKey:output_type -> meta.FileResponse
-	14, // [14:22] is the sub-list for method output_type
-	6,  // [6:14] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	1,  // 0: meta.MetaResponse.labels:type_name -> meta.Label
+	14, // 1: meta.MetaResponse.file_last_modified:type_name -> google.protobuf.Timestamp
+	14, // 2: meta.MetaResponse.created_at:type_name -> google.protobuf.Timestamp
+	14, // 3: meta.UplodaMetaRequest.file_last_modified:type_name -> google.protobuf.Timestamp
+	0,  // 4: meta.GetMetaByUserResponse.metas:type_name -> meta.MetaResponse
+	0,  // 5: meta.GetAllMetaResponse.metas:type_name -> meta.MetaResponse
+	0,  // 6: meta.DeleteMetaByUserResponse.deleted_metas:type_name -> meta.MetaResponse
+	2,  // 7: meta.MetaService.UploadMeta:input_type -> meta.UplodaMetaRequest
+	3,  // 8: meta.MetaService.GetMetaById:input_type -> meta.GetMetaByIdRequest
+	4,  // 9: meta.MetaService.GetMetaByUser:input_type -> meta.GetMetaByUserRequest
+	6,  // 10: meta.MetaService.GetAllMeta:input_type -> meta.GetAllMetaRequest
+	8,  // 11: meta.MetaService.DeleteMetaById:input_type -> meta.DeleteMetaByIdRequest
+	9,  // 12: meta.MetaService.DeleteMetaByUser:input_type -> meta.DeleteMetaByUserRequest
+	11, // 13: meta.MetaService.UpdateMeta:input_type -> meta.UpdateMetaRequest
+	12, // 14: meta.MetaService.GetFileByKey:input_type -> meta.GetFileByKeyRequest
+	0,  // 15: meta.MetaService.UploadMeta:output_type -> meta.MetaResponse
+	0,  // 16: meta.MetaService.GetMetaById:output_type -> meta.MetaResponse
+	5,  // 17: meta.MetaService.GetMetaByUser:output_type -> meta.GetMetaByUserResponse
+	7,  // 18: meta.MetaService.GetAllMeta:output_type -> meta.GetAllMetaResponse
+	0,  // 19: meta.MetaService.DeleteMetaById:output_type -> meta.MetaResponse
+	10, // 20: meta.MetaService.DeleteMetaByUser:output_type -> meta.DeleteMetaByUserResponse
+	0,  // 21: meta.MetaService.UpdateMeta:output_type -> meta.MetaResponse
+	13, // 22: meta.MetaService.GetFileByKey:output_type -> meta.FileResponse
+	15, // [15:23] is the sub-list for method output_type
+	7,  // [7:15] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_meta_proto_init() }
@@ -912,7 +993,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UplodaMetaRequest); i {
+			switch v := v.(*Label); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -924,7 +1005,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetMetaByIdRequest); i {
+			switch v := v.(*UplodaMetaRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -936,7 +1017,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetMetaByUserRequest); i {
+			switch v := v.(*GetMetaByIdRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -948,7 +1029,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetMetaByUserResponse); i {
+			switch v := v.(*GetMetaByUserRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -960,7 +1041,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetAllMetaRequest); i {
+			switch v := v.(*GetMetaByUserResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -972,7 +1053,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetAllMetaResponse); i {
+			switch v := v.(*GetAllMetaRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -984,7 +1065,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteMetaByIdRequest); i {
+			switch v := v.(*GetAllMetaResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -996,7 +1077,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteMetaByUserRequest); i {
+			switch v := v.(*DeleteMetaByIdRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1008,7 +1089,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteMetaByUserResponse); i {
+			switch v := v.(*DeleteMetaByUserRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1020,7 +1101,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateMetaRequest); i {
+			switch v := v.(*DeleteMetaByUserResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1032,7 +1113,7 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetFileByKeyRequest); i {
+			switch v := v.(*UpdateMetaRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1044,6 +1125,18 @@ func file_meta_proto_init() {
 			}
 		}
 		file_meta_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetFileByKeyRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_meta_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*FileResponse); i {
 			case 0:
 				return &v.state
@@ -1056,14 +1149,14 @@ func file_meta_proto_init() {
 			}
 		}
 	}
-	file_meta_proto_msgTypes[1].OneofWrappers = []interface{}{}
+	file_meta_proto_msgTypes[2].OneofWrappers = []interface{}{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_meta_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

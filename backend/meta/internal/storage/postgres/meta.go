@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"database/sql"
-	"photobox-meta/internal/models/entity"
+	"photobox-meta/internal/entity"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -117,15 +117,15 @@ func (r *MetaRepo) GetAllMetaByUserId(user_id string) ([]entity.Meta, error) {
 	metas := []entity.Meta{}
 
 	query := `
-	SELECT
-		id, user_id,
-		file_location, file_name,
-		file_size, file_ext, file_last_modified,
-		created_at
-	FROM
-		metadata
-	WHERE
-		user_id = $1
+		SELECT
+			id, user_id,
+			file_location, file_name,
+			file_size, file_ext, file_last_modified,
+			created_at
+		FROM
+			metadata
+		WHERE
+			user_id = $1
 	`
 
 	rows, err := r.db.Query(query, user_id)
@@ -147,6 +147,41 @@ func (r *MetaRepo) GetAllMetaByUserId(user_id string) ([]entity.Meta, error) {
 		if err != nil {
 			return []entity.Meta{}, err
 		}
+
+		query = `
+			SELECT
+				l.value as value,
+				ml.label_id as label_id,
+				ml.id as metadata_label_id
+			FROM
+				metadata_labels ml
+			JOIN
+				labels l
+			ON
+				l.id = ml.label_id
+			WHERE
+				ml.metadata_id = $1
+		`
+		rows, err := r.db.Query(query, meta.ID)
+		if err != nil {
+			return []entity.Meta{}, err
+		}
+
+		labels := []entity.Label{}
+		for rows.Next() {
+			label := entity.Label{}
+			err := rows.Scan(
+				&label.Value,
+				&label.ID,
+				&label.MetadataLabelID,
+			)
+			if err != nil {
+				return []entity.Meta{}, err
+			}
+			labels = append(labels, label)
+		}
+
+		meta.Labels = labels
 		metas = append(metas, meta)
 	}
 

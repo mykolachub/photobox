@@ -5,8 +5,15 @@ export interface MetaDTO {
   file_name: string;
   file_ext: string;
   file_size: number;
+  labels: LabelDTO[];
   file_last_modified: Date | ProtoTime;
   created_at: Date | ProtoTime;
+}
+
+export interface LabelDTO {
+  id: string;
+  value: string;
+  metadata_labels_id: string;
 }
 
 export interface FileDTO {

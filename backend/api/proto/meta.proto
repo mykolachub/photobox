@@ -25,9 +25,16 @@ message MetaResponse {
     string file_name = 4;
     int64 file_size = 5;
     string file_ext = 6;
-    google.protobuf.Timestamp file_last_modified = 7;
+    repeated Label labels = 7;
+    google.protobuf.Timestamp file_last_modified = 8;
     // TODO: add keywords
-    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp created_at = 9;
+}
+
+message Label {
+    string id = 1;
+    string value = 2;
+    string metadata_label_id = 3;
 }
 
 message UplodaMetaRequest {

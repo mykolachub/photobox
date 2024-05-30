@@ -10,5 +10,12 @@ type Meta struct {
 	FileSize         int
 	FileExt          string
 	FileLastModified time.Time
+	Labels           []Label
 	CreatedAt        time.Time
+}
+
+type Label struct {
+	ID              string
+	Value           string
+	MetadataLabelID string
 }

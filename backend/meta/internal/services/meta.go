@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"path/filepath"
-	"photobox-meta/internal/models/entity"
+	"photobox-meta/internal/entity"
 	"photobox-meta/internal/utils"
 	"photobox-meta/logger"
 	"photobox-meta/proto"
@@ -160,7 +160,7 @@ func (s *MetaService) GetFileByKey(ctx context.Context, in *proto.GetFileByKeyRe
 }
 
 func MakeMetaResponse(meta entity.Meta) proto.MetaResponse {
-	return proto.MetaResponse{
+	res := proto.MetaResponse{
 		Id:               meta.ID,
 		UserId:           meta.UserID,
 		FileLocation:     meta.FileLocation,
@@ -170,4 +170,13 @@ func MakeMetaResponse(meta entity.Meta) proto.MetaResponse {
 		FileLastModified: timestamppb.New(meta.FileLastModified),
 		CreatedAt:        timestamppb.New(meta.CreatedAt),
 	}
+
+	labels := []*proto.Label{}
+	for _, v := range meta.Labels {
+		label := proto.Label{Id: v.ID, Value: v.Value, MetadataLabelId: v.MetadataLabelID}
+		labels = append(labels, &label)
+	}
+	res.Labels = labels
+
+	return res
 }

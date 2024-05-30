@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"photobox-meta/internal/models/entity"
+	"photobox-meta/internal/entity"
 )
 
 type Storages struct {
