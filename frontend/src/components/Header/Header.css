@@ -1,5 +1,9 @@
 .header__wrapper {
   padding: 20px;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
 }
 
 .header {

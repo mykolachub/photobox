@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable indent */
 import React, { useEffect, useState } from 'react';
 import fileStore from '../stores/file';
@@ -311,121 +312,150 @@ const Home = () => {
   }
 
   return (
-    <div>
-      {images.some((image) => image.isChecked) ? (
-        <div className="home__selected home__selected--active">
-          <div className="home__selected_left">
-            <ButtonSmall message="cancel" onClick={handleCancelImageSelect} />
-            <p>{images.filter((image) => image.isChecked).length} selected</p>
-          </div>
-          <div className="home__selected_images">
-            {images.map((image) =>
-              image.isChecked ? (
-                <img
-                  key={image.id}
-                  src={image.imageUrl || ''}
-                  className="home__selected_image"
-                />
-              ) : (
-                <></>
-              ),
-            )}
-          </div>
-          <div>
-            <ButtonSmall
-              message="delete"
-              onClick={handleDeleteSelectedImages}
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="home__selected"></div>
-      )}
-
-      <div className="home__images__wrapper">
-        {Object.keys(groupedImages).length ? (
-          Object.keys(groupedImages)
+    <div className="home__content">
+      <aside className="home__left">
+        <div className="home__datelinks">
+          {Object.keys(groupedImages)
             .sort(
               (a, b) =>
                 new Date(a).getMilliseconds() - new Date(b).getMilliseconds(),
             )
             .reverse()
-            .map((date) => {
-              const files = groupedImages[date];
-              let groupCheckStyle: string;
-              switch (groupImageCheck[date]) {
-                case 'checked':
-                  groupCheckStyle = 'home__group_input--checked';
-                  break;
-                case 'half-checked':
-                  groupCheckStyle = 'home__group_input--half-checked';
-                  break;
-                default:
-                  groupCheckStyle = 'home__group_input--unchecked';
-                  break;
-              }
+            .map((date) => (
+              <a
+                key={date}
+                href={'#' + date.replaceAll(' ', '_')}
+                className="home__date_link"
+              >
+                {'- ' + date}
+              </a>
+            ))}
+        </div>
+      </aside>
 
-              return (
-                <div key={date} className="home__images_group">
-                  <div>
-                    <label className="home__group_label">
-                      {date}
-                      <input
-                        type="checkbox"
-                        name="checked"
-                        className={classNames(
-                          groupCheckStyle,
-                          'home__group_input',
-                        )}
-                        onChange={() => handleImageGroupCheck(date)}
-                      />
-                      <span className="home__group_checkbox"></span>
-                    </label>
-                  </div>
-                  <div className="images__group">
-                    {files.map((file) => (
-                      <div key={file.file_location} className="home__images">
-                        <img src={file.imageUrl || ''} alt={file.file_name} />
-                        <div className="home__image_hover">
-                          <label className="home__image_label">
-                            <input
-                              type="checkbox"
-                              name="checked"
-                              checked={file.isChecked}
-                              className="home__image_input"
-                              onChange={() =>
-                                handleImageCheck(file.file_location)
-                              }
-                            />
-                            <span className="home__image_checkbox"></span>
-                          </label>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })
-        ) : (
-          <div className="home__noimages">
-            <img
-              src={ImageIcon}
-              alt="No Photos"
-              className="home__noimages_icon"
-            />
-            {search ? (
-              <p>No images found</p>
-            ) : (
-              <>
-                <p>No images yet</p>
+      <div className="home__main">
+        {images.some((image) => image.isChecked) ? (
+          <div className="home__selected_wrapper">
+            <div className="home__selected home__selected--active">
+              <div className="home__selected_left">
                 <ButtonSmall
-                  message="Upload Photos"
-                  onClick={handleOpenUploadPopup}
+                  message="cancel"
+                  onClick={handleCancelImageSelect}
                 />
-              </>
-            )}
+                <p>
+                  {images.filter((image) => image.isChecked).length} selected
+                </p>
+              </div>
+              <div className="home__selected_images">
+                {images.map((image) =>
+                  image.isChecked ? (
+                    <img
+                      key={image.id}
+                      src={image.imageUrl || ''}
+                      className="home__selected_image"
+                    />
+                  ) : (
+                    <></>
+                  ),
+                )}
+              </div>
+              <div>
+                <ButtonSmall
+                  message="delete"
+                  onClick={handleDeleteSelectedImages}
+                />
+              </div>
+            </div>
           </div>
+        ) : (
+          <div className="home__selected"></div>
         )}
+
+        <div className="home__images__wrapper">
+          {Object.keys(groupedImages).length ? (
+            Object.keys(groupedImages)
+              .sort(
+                (a, b) =>
+                  new Date(a).getMilliseconds() - new Date(b).getMilliseconds(),
+              )
+              .reverse()
+              .map((date) => {
+                const files = groupedImages[date];
+                let groupCheckStyle: string;
+                switch (groupImageCheck[date]) {
+                  case 'checked':
+                    groupCheckStyle = 'home__group_input--checked';
+                    break;
+                  case 'half-checked':
+                    groupCheckStyle = 'home__group_input--half-checked';
+                    break;
+                  default:
+                    groupCheckStyle = 'home__group_input--unchecked';
+                    break;
+                }
+
+                return (
+                  <div key={date} className="home__images_group">
+                    <div id={date.replaceAll(' ', '_')}>
+                      <label className="home__group_label">
+                        {date}
+                        <input
+                          type="checkbox"
+                          name="checked"
+                          className={classNames(
+                            groupCheckStyle,
+                            'home__group_input',
+                          )}
+                          onChange={() => handleImageGroupCheck(date)}
+                        />
+                        <span className="home__group_checkbox"></span>
+                      </label>
+                    </div>
+                    <div className="images__group">
+                      {files.map((file) => (
+                        <div key={file.file_location} className="home__images">
+                          <img src={file.imageUrl || ''} alt={file.file_name} />
+                          <div className="home__image_hover">
+                            <label className="home__image_label">
+                              <input
+                                type="checkbox"
+                                name="checked"
+                                checked={file.isChecked}
+                                className="home__image_input"
+                                onChange={() =>
+                                  handleImageCheck(file.file_location)
+                                }
+                              />
+                              <span className="home__image_checkbox"></span>
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+          ) : (
+            <div className="home__noimages">
+              <img
+                src={ImageIcon}
+                alt="No Photos"
+                className="home__noimages_icon"
+              />
+              {search ? (
+                <p>No images found</p>
+              ) : (
+                <>
+                  <p>No images yet</p>
+                  <ButtonSmall
+                    message="Upload Photos"
+                    onClick={handleOpenUploadPopup}
+                  />
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <button className="home__open_upload" onClick={handleOpenUploadPopup}>
