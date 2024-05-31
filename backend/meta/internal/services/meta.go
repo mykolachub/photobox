@@ -58,6 +58,8 @@ func (s *MetaService) UploadMeta(ctx context.Context, in *proto.UplodaMetaReques
 		FileSize:         int(fileSize),
 		FileExt:          fileExt,
 		FileLastModified: in.FileLastModified.AsTime(),
+		FileWidth:        int(in.FileWidth),
+		FileHeight:       int(in.FileHeight),
 	})
 	if err != nil {
 		return &proto.MetaResponse{}, nil
@@ -169,6 +171,8 @@ func MakeMetaResponse(meta entity.Meta) proto.MetaResponse {
 		FileExt:          meta.FileExt,
 		FileLastModified: timestamppb.New(meta.FileLastModified),
 		CreatedAt:        timestamppb.New(meta.CreatedAt),
+		FileWidth:        int32(meta.FileWidth),
+		FileHeight:       int32(meta.FileHeight),
 	}
 
 	labels := []*proto.Label{}

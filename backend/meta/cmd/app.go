@@ -72,6 +72,7 @@ func Run(env *config.Env) {
 		if err != nil {
 			log.Printf("RabbitMQ [meta_upload] ERROR: %v", err)
 		}
+		log.Println("RabbitMQ consumes message...")
 
 		_, err = metaService.UploadMeta(context.TODO(), &req)
 		if err != nil {

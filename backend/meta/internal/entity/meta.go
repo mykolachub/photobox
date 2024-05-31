@@ -9,6 +9,8 @@ type Meta struct {
 	FileName         string
 	FileSize         int
 	FileExt          string
+	FileWidth        int
+	FileHeight       int
 	FileLastModified time.Time
 	Labels           []Label
 	CreatedAt        time.Time

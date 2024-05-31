@@ -2,9 +2,9 @@
 /* eslint-disable indent */
 import React, { useEffect, useState } from 'react';
 import fileStore from '../stores/file';
-import { openDB } from 'idb';
 import './Home.css';
 import { MetaDTO } from '../types/file';
+import { useInView } from 'react-intersection-observer';
 
 import AddIcon from '../assets/images/icon-add.svg';
 import ButtonSmall from '../components/Buttons/ButtonSmall';
@@ -26,11 +26,83 @@ function blobToBase64(blob: Blob) {
   });
 }
 
-const DB_NAME = 'fileCache';
-const STORE_NAME = 'files';
+interface ImageComponentProps {
+  file: CacheDTO;
+  image: string;
+  setImages: React.Dispatch<React.SetStateAction<CacheDTO[]>>;
+}
 
+const ImageComponent: React.FC<ImageComponentProps> = ({
+  file,
+  image,
+  setImages,
+}) => {
+  const { getFile } = fileStore();
+  const [imageUrl, setImageUrl] = useState<string | null>(file.imageUrl);
+  const [loading, setLoading] = useState(false);
+
+  const { ref, inView } = useInView({ threshold: 0 });
+
+  useEffect(() => {
+    if (file.imageUrl === '' && inView) {
+      const fetchImage = async () => {
+        setLoading(true);
+        try {
+          const { url } = await getFile(file.file_location);
+          setImageUrl(url);
+          setImages((prev) =>
+            prev.map((prevImage) => {
+              if (prevImage.id === file.id) {
+                return { ...prevImage, imageUrl: url };
+              }
+              return { ...prevImage };
+            }),
+          );
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchImage();
+    }
+  }, [ref, inView]);
+
+  const width = (200 * file.file_width) / file.file_height;
+  const height = 200;
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        width: width,
+        height: height,
+      }}
+    >
+      {loading ? (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            background: '#f2f2f2',
+          }}
+        ></div>
+      ) : imageUrl ? (
+        <img src={imageUrl} alt={file.file_name} />
+      ) : (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            background: '#f2f2f2',
+          }}
+        ></div>
+      )}
+    </div>
+  );
+};
 const Home = () => {
-  const { uploadFile, getMeta, getFile, deleteFile } = fileStore();
+  const { uploadFile, getMeta, deleteFile } = fileStore();
   const { search } = searchStore();
 
   const [refreshMetaTrigger, setRefreshMetaTrigger] = useState(0);
@@ -42,7 +114,6 @@ const Home = () => {
     [key: string]: CacheDTO[];
   }>({});
 
-  // const [searchInput, setSearchInput] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [uploadPopupOpen, setUploadPopupOpen] = useState(false);
 
@@ -55,61 +126,16 @@ const Home = () => {
         return;
       }
 
-      const db = await openDB(DB_NAME, 1, {
-        upgrade(db) {
-          db.createObjectStore(STORE_NAME, { keyPath: 'file_location' });
-        },
-      });
+      const cachedFiles = [] as CacheDTO[];
 
-      // Get cached files from IndexedDB
-      const cachedFiles = (await db.getAll(STORE_NAME)) as CacheDTO[];
-
-      // Create sets for efficient comparison
-      const metaFileLocations = new Set(
-        metaList.map((meta) => meta.file_location),
-      );
-      const cachedFileLocations = new Set(
-        cachedFiles.map((file) => file.file_location),
-      );
-
-      // Identify new files to add and missing files to remove
-      const filesToAdd = metaList.filter(
-        (meta) => !cachedFileLocations.has(meta.file_location),
-      );
-      const filesToRemove = cachedFiles.filter(
-        (file) => !metaFileLocations.has(file.file_location),
-      );
-
-      // Update cache and IndexedDB
-      for (const file of filesToRemove) {
-        await db.delete(STORE_NAME, file.file_location);
-        const indexToRemove = cachedFiles.indexOf(file); // Find index for removal
-        if (indexToRemove > -1) {
-          cachedFiles.splice(indexToRemove, 1); // Remove the item
-        }
-      }
-
-      for (const meta of filesToAdd) {
+      for (const meta of metaList) {
         const file = { imageUrl: '', ...meta, isChecked: false } as CacheDTO;
-        cachedFiles.push(file); // Add to cache before fetching
-
-        try {
-          const { blob } = await getFile(meta.file_location);
-          const base64 = await blobToBase64(blob);
-          file.imageUrl = base64 as string;
-          await db.put(STORE_NAME, file); // Store in IndexedDB
-        } catch (error) {
-          console.error('Error fetching or storing image:', error);
-          // Consider removing from cache if fetch fails
-          cachedFiles.pop(); // Remove the last added file (the one that failed)
-        }
+        cachedFiles.push(file);
       }
 
       // Update state with cached images
       setImages(cachedFiles); // Update state after modifications
       setLoaded(true);
-
-      db.close();
     };
 
     fetchAndCacheImages();
@@ -118,6 +144,7 @@ const Home = () => {
   // when images changed, imagesCopy will be affected to
   // imagesCopy is for image grouping, searching
   useEffect(() => {
+    console.log('images changed');
     // Creating Indexing object Label to Images
     const newIndexLabelToImage: { [key: string]: CacheDTO[] } = {};
     images.forEach((image) => {
@@ -196,6 +223,7 @@ const Home = () => {
   }, [groupedImages]);
 
   const handleImageCheck = (location: string) => {
+    console.log(images.find(({ file_location }) => file_location === location));
     setImages(() =>
       images.map((image) => {
         if (image.file_location === location) {
@@ -351,7 +379,7 @@ const Home = () => {
                   image.isChecked ? (
                     <img
                       key={image.id}
-                      src={image.imageUrl || ''}
+                      src={image.imageUrl as string}
                       className="home__selected_image"
                     />
                   ) : (
@@ -412,25 +440,35 @@ const Home = () => {
                       </label>
                     </div>
                     <div className="images__group">
-                      {files.map((file) => (
-                        <div key={file.file_location} className="home__images">
-                          <img src={file.imageUrl || ''} alt={file.file_name} />
-                          <div className="home__image_hover">
-                            <label className="home__image_label">
-                              <input
-                                type="checkbox"
-                                name="checked"
-                                checked={file.isChecked}
-                                className="home__image_input"
-                                onChange={() =>
-                                  handleImageCheck(file.file_location)
-                                }
-                              />
-                              <span className="home__image_checkbox"></span>
-                            </label>
+                      {files.map((file) => {
+                        return (
+                          <div
+                            key={file.file_location}
+                            className="home__images"
+                          >
+                            <ImageComponent
+                              file={file}
+                              image={file.imageUrl ?? ''}
+                              setImages={setImages}
+                            />
+                            {/* <img /> */}
+                            <div className="home__image_hover">
+                              <label className="home__image_label">
+                                <input
+                                  type="checkbox"
+                                  name="checked"
+                                  checked={file.isChecked}
+                                  className="home__image_input"
+                                  onChange={() =>
+                                    handleImageCheck(file.file_location)
+                                  }
+                                />
+                                <span className="home__image_checkbox"></span>
+                              </label>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 );

@@ -22,16 +22,17 @@ func (r *MetaRepo) CreateMeta(data entity.Meta) (entity.Meta, error) {
 
 	query := `
 	INSERT INTO
-		metadata(user_id, file_location, file_name, file_size, file_ext, file_last_modified, created_at)
+		metadata(user_id, file_location, file_name, file_size, file_ext, file_last_modified, created_at, file_width, file_height)
 	VALUES
-		($1, $2, $3, $4, $5, $6, $7)
+		($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	RETURNING
 		id, user_id,
 		file_location, file_name,
 		file_size, file_ext, file_last_modified,
+		file_width, file_height,
 		created_at`
 
-	rows := r.db.QueryRow(query, data.UserID, data.FileLocation, data.FileName, data.FileSize, data.FileExt, data.FileLastModified, now)
+	rows := r.db.QueryRow(query, data.UserID, data.FileLocation, data.FileName, data.FileSize, data.FileExt, data.FileLastModified, now, data.FileWidth, data.FileHeight)
 	err := rows.Scan(
 		&meta.ID,
 		&meta.UserID,
@@ -40,6 +41,8 @@ func (r *MetaRepo) CreateMeta(data entity.Meta) (entity.Meta, error) {
 		&meta.FileSize,
 		&meta.FileExt,
 		&meta.FileLastModified,
+		&meta.FileWidth,
+		&meta.FileHeight,
 		&meta.CreatedAt,
 	)
 	if err != nil {
@@ -57,6 +60,7 @@ func (r *MetaRepo) GetMetaById(id string) (entity.Meta, error) {
 		id, user_id,
 		file_location, file_name,
 		file_size, file_ext, file_last_modified,
+		file_width, file_height,
 		created_at
 	FROM
 		metadata
@@ -72,6 +76,8 @@ func (r *MetaRepo) GetMetaById(id string) (entity.Meta, error) {
 		&meta.FileSize,
 		&meta.FileExt,
 		&meta.FileLastModified,
+		&meta.FileWidth,
+		&meta.FileHeight,
 		&meta.CreatedAt,
 	)
 	if err != nil {
@@ -89,6 +95,7 @@ func (r *MetaRepo) GetMetaByFileLocation(fileLocation string) (entity.Meta, erro
 		id, user_id,
 		file_location, file_name,
 		file_size, file_ext, file_last_modified,
+		file_width, file_height,
 		created_at
 	FROM
 		metadata
@@ -104,6 +111,8 @@ func (r *MetaRepo) GetMetaByFileLocation(fileLocation string) (entity.Meta, erro
 		&meta.FileSize,
 		&meta.FileExt,
 		&meta.FileLastModified,
+		&meta.FileWidth,
+		&meta.FileHeight,
 		&meta.CreatedAt,
 	)
 	if err != nil {
@@ -121,6 +130,7 @@ func (r *MetaRepo) GetAllMetaByUserId(user_id string) ([]entity.Meta, error) {
 			id, user_id,
 			file_location, file_name,
 			file_size, file_ext, file_last_modified,
+			file_width, file_height,
 			created_at
 		FROM
 			metadata
@@ -142,6 +152,8 @@ func (r *MetaRepo) GetAllMetaByUserId(user_id string) ([]entity.Meta, error) {
 			&meta.FileSize,
 			&meta.FileExt,
 			&meta.FileLastModified,
+			&meta.FileWidth,
+			&meta.FileHeight,
 			&meta.CreatedAt,
 		)
 		if err != nil {
@@ -208,6 +220,7 @@ func (r *MetaRepo) DeleteMeta(id string) (entity.Meta, error) {
 		id, user_id,
 		file_location, file_name,
 		file_size, file_ext, file_last_modified,
+		file_width, file_height,
 		created_at
 	`
 	err := r.db.QueryRow(query, id).Scan(
@@ -218,6 +231,8 @@ func (r *MetaRepo) DeleteMeta(id string) (entity.Meta, error) {
 		&meta.FileSize,
 		&meta.FileExt,
 		&meta.FileLastModified,
+		&meta.FileWidth,
+		&meta.FileHeight,
 		&meta.CreatedAt,
 	)
 	if err != nil {

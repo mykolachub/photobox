@@ -5,6 +5,8 @@ export interface MetaDTO {
   file_name: string;
   file_ext: string;
   file_size: number;
+  file_width: number;
+  file_height: number;
   labels: LabelDTO[];
   file_last_modified: Date | ProtoTime;
   created_at: Date | ProtoTime;

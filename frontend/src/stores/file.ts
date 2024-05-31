@@ -30,14 +30,34 @@ const fileStore = create<FileState>((set) => ({
       formData.append('file', file);
       formData.append('lastModified', file.lastModified.toString());
 
+      const reader = new FileReader();
+      const { width, height } = await new Promise<{
+        width: number;
+        height: number;
+      }>((resolve) => {
+        reader.onload = () => {
+          const imageDataUrl = reader.result as string;
+          const image = new Image();
+          image.src = imageDataUrl;
+
+          image.onload = () => {
+            const width = image.width;
+            const height = image.height;
+            resolve({ width, height });
+          };
+        };
+
+        reader.readAsDataURL(file);
+      });
+
+      formData.append('fileWidth', width.toString());
+      formData.append('fileHeight', height.toString());
+
       const token = `Bearer ${authStore.getState().token}`;
       const response = await axios.post(API_URL + '/meta', formData, {
         headers: { Authorization: token },
       });
       const { data } = response.data as ServerResponse<MetaDTO>;
-
-      // data.createdAt = protoToDate(data.createdAt as ProtoTime);
-      // data.fileLastModified = protoToDate(data.fileLastModified as ProtoTime);
 
       return data;
     } catch (error) {

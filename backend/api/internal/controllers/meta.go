@@ -65,12 +65,26 @@ func (h MetaHandler) uploadMeta(c *gin.Context) {
 	}
 	fileLastModified := time.UnixMilli(createdAt)
 
+	fileWidth, err := strconv.ParseInt(c.PostForm("fileWidth"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fileHeight, err := strconv.ParseInt(c.PostForm("fileHeight"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	// Preparing body
 	protoReqBody := &proto.UplodaMetaRequest{
 		UserId:           userId,
 		Filename:         fileHeader.Filename,
 		File:             fileBytes,
 		FileLastModified: timestamppb.New(fileLastModified),
+		FileWidth:        int32(fileWidth),
+		FileHeight:       int32(fileHeight),
 	}
 
 	bytesReqBody, err := pb.Marshal(protoReqBody)
